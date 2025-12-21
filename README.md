@@ -10,5 +10,6 @@ Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrati
 - Added custom fields on Company object (Industry, Company Size, Website, Headquarters)
 - Added custom fields on Job Application object (Position Title, Status, Expected Salary, Notes, Interview Date)
 - Created lookup relationship (Job Application → Company)
+- Designed clean page layouts with proper sections
 - Updated page layouts for both objects
 - Added sample records and tested relationships
