@@ -13,3 +13,12 @@ Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrati
 - Designed clean page layouts with proper sections
 - Updated page layouts for both objects
 - Added sample records and tested relationships
+
+### Day 3 – Data Validation + Controls
+- Added validation rules on Job Application:
+  - Interview date cannot be in the past
+  - Expected salary must be greater than zero
+  - Position required when Status = Interviewing
+- Marked important business fields as Required
+- Created multiple List Views for Job Applications (Applied, Interviewing, Offered, Rejected)
+- Filtered records to validate data quality
