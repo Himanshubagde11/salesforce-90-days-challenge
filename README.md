@@ -22,3 +22,39 @@ Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrati
 - Marked important business fields as Required
 - Created multiple List Views for Job Applications (Applied, Interviewing, Offered, Rejected)
 - Filtered records to validate data quality
+
+## Day 4 – Job Application Workflow & User Experience Enhancements
+
+On Day 4, I focused on improving the Job Application workflow by enhancing usability, enforcing data quality, and guiding users through a structured hiring process.
+
+### 1. Page Layout Optimization
+- Cleaned and reorganized page layouts for both Company and Job Application objects.
+- Grouped fields into meaningful sections such as:
+  - Job Details
+  - Compensation
+  - Interview
+  - Notes
+- Removed unnecessary system fields from the main view to improve readability and user focus.
+
+### 2. Validation Rules for Data Integrity
+Implemented validation rules to ensure correct data entry:
+- Prevented status progression to "Interviewing" unless Interview Date is filled.
+- Made Company selection mandatory to avoid orphan Job Applications.
+These rules simulate real-world business constraints commonly used in recruitment systems.
+
+### 3. Salesforce Path Implementation
+- Configured Salesforce Path on the Job Application object using the Status picklist.
+- Defined stages: Applied → Interviewing → Offered → Rejected.
+- Added Guidance for Success at each stage to assist users in understanding next actions.
+
+### 4. Celebration & User Feedback
+- Enabled Celebration for the final stage (Offered) to enhance user experience.
+- This provides visual feedback and improves adoption for business users.
+
+### 5. Kanban View for Recruiter Workflow
+- Used Kanban view to visualize Job Applications by Status.
+- Enabled drag-and-drop status updates, simulating how recruiters track candidates in real time.
+
+### Outcome
+This setup demonstrates how Salesforce can be used not just as a data storage system, but as a guided, process-driven application that improves efficiency, data quality, and user experience.
+
