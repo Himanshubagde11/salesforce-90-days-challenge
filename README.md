@@ -58,3 +58,33 @@ These rules simulate real-world business constraints commonly used in recruitmen
 ### Outcome
 This setup demonstrates how Salesforce can be used not just as a data storage system, but as a guided, process-driven application that improves efficiency, data quality, and user experience.
 
+
+## Day 5 – Automating Recruitment Workflow with Salesforce Flow
+
+### What I built
+Created a Record-Triggered Flow on the Job Application object to automate status updates and reduce manual recruiter work.
+
+### Automation Logic
+- Flow Type: Record-Triggered Flow (After Save)
+- Trigger: Job Application record is created or updated
+- Entry Conditions:
+  - Interview Date is NOT null
+  - Status is NOT equal to "Interviewing"
+  - Flow runs only when record is updated to meet conditions
+
+### Automated Action
+- Automatically updates Status to "Interviewing" when an Interview Date is added
+
+### Why this matters
+This automation ensures data consistency and prevents recruiters from forgetting to update application status manually. It reflects real-world recruitment workflows where process enforcement is critical.
+
+### Outcome
+- Eliminated manual status updates
+- Improved data accuracy
+- Created a scalable, production-ready automation using Salesforce Flow
+
+### Skills Used
+- Salesforce Flow Builder  
+- Record-Triggered Automation  
+- Business Process Automation  
+- Data Quality Enforcement
