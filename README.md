@@ -89,189 +89,23 @@ This automation ensures data consistency and prevents recruiters from forgetting
 - Business Process Automation  
 - Data Quality Enforcement
 
-## Day 6 – Salesforce Flow Automation (Recruitment Process)
+## Day 6 – Salesforce Flow Automation (Recruitment Workflow)
 
-### 🚀 Objective
-Automate the Job Application lifecycle so that application status updates happen automatically based on real recruitment actions, reducing manual effort and human error.
+Implemented a production-style record-triggered Flow to automate Job Application status transitions based on real recruitment events.
 
----
+### What was done
+- Built a Record-Triggered Flow on the Job Application object
+- Configured selective entry conditions so the flow runs only when:
+  - Interview Date is added, or
+  - Offer Date is added
+- Used Decision elements to control valid status transitions:
+  - Applied → Interviewing (when Interview Date is populated)
+  - Interviewing → Offered (when Offer Date is populated)
+- Ensured the flow exits safely when conditions are not met
+- Prevented unnecessary executions and infinite loops by validating current status
 
-### 🧩 Problem Statement
-Recruiters often forget to manually update the **Status** of a Job Application after:
-- Scheduling an interview
-- Releasing an offer
+### Why this matters
+This automation removes manual dependency on recruiters to update application status, improves data accuracy, and reflects a real-world recruitment lifecycle instead of demo-level automation.
 
-This leads to:
-- Incorrect pipeline tracking
-- Poor reporting accuracy
-- Inconsistent recruitment data
-
----
-
-### ✅ Solution Overview
-Implemented a **Record-Triggered Flow** on the **Job Application** object that automatically updates the Status field based on Interview Date and Offer Date updates.
-
----
-
-### ⚙️ Flow Configuration
-
-**Flow Type:** Record-Triggered Flow  
-**Object:** Job Application  
-**Trigger:** Record is created or updated  
-**Optimization:** Actions and Related Records (After Save)
-
----
-
-### 🔔 Entry Conditions
-The flow executes **only when meaningful business data changes**, not on every edit:
-
-- Interview Date **is NOT null**
-- OR Offer Date **is NOT null**
-
-**Execution Condition:**  
-✔ Run **only when the record is updated to meet the condition requirements**
-
----
-
-### 🔁 Automation Logic (Decision-Based)
-
-#### 🟢 Scenario 1: Interview Scheduled
-- **Condition:**  
-  - Status = `Applied`  
-  - Interview Date is populated
-- **Action:**  
-  → Automatically update Status to **Interviewing**
-
-#### 🟣 Scenario 2: Offer Released
-- **Condition:**  
-  - Status = `Interviewing`  
-  - Offer Date is populated
-- **Action:**  
-  → Automatically update Status to **Offered**
-
-#### 🔴 Default Outcome
-- If conditions are not met  
-  → Flow exits safely without updating anything
-
----
-
-### 🛠️ Salesforce Components Used
-- Record-Triggered Flow
-- Decision Element
-- Update Records Element
-- Entry Conditions for performance optimization
-
----
-
-### 🧠 Key Learnings
-- Real-world Salesforce automation should be **event-driven**, not trigger-happy
-- Decision elements help prevent unnecessary updates and infinite loops
-- Proper entry conditions significantly improve performance and scalability
-- Salesforce Flows can model real business processes without Apex
-
----
-
-### 📈 Outcome
-✔ Reduced manual status updates  
-✔ Improved recruitment pipeline accuracy  
-✔ Built a production-style automation aligned with real business use cases  
-
----
-
-### 🔜 Next Steps
-- Email notifications for recruiters and candidates  
-- Auto-rejection logic for expired interviews  
-- Approval process integration for offers
-## Day 6 – Salesforce Flow Automation (Recruitment Process)
-
-### 🚀 Objective
-Automate the Job Application lifecycle so that application status updates happen automatically based on real recruitment actions, reducing manual effort and human error.
-
----
-
-### 🧩 Problem Statement
-Recruiters often forget to manually update the **Status** of a Job Application after:
-- Scheduling an interview
-- Releasing an offer
-
-This leads to:
-- Incorrect pipeline tracking
-- Poor reporting accuracy
-- Inconsistent recruitment data
-
----
-
-### ✅ Solution Overview
-Implemented a **Record-Triggered Flow** on the **Job Application** object that automatically updates the Status field based on Interview Date and Offer Date updates.
-
----
-
-### ⚙️ Flow Configuration
-
-**Flow Type:** Record-Triggered Flow  
-**Object:** Job Application  
-**Trigger:** Record is created or updated  
-**Optimization:** Actions and Related Records (After Save)
-
----
-
-### 🔔 Entry Conditions
-The flow executes **only when meaningful business data changes**, not on every edit:
-
-- Interview Date **is NOT null**
-- OR Offer Date **is NOT null**
-
-**Execution Condition:**  
-✔ Run **only when the record is updated to meet the condition requirements**
-
----
-
-### 🔁 Automation Logic (Decision-Based)
-
-#### 🟢 Scenario 1: Interview Scheduled
-- **Condition:**  
-  - Status = `Applied`  
-  - Interview Date is populated
-- **Action:**  
-  → Automatically update Status to **Interviewing**
-
-#### 🟣 Scenario 2: Offer Released
-- **Condition:**  
-  - Status = `Interviewing`  
-  - Offer Date is populated
-- **Action:**  
-  → Automatically update Status to **Offered**
-
-#### 🔴 Default Outcome
-- If conditions are not met  
-  → Flow exits safely without updating anything
-
----
-
-### 🛠️ Salesforce Components Used
-- Record-Triggered Flow
-- Decision Element
-- Update Records Element
-- Entry Conditions for performance optimization
-
----
-
-### 🧠 Key Learnings
-- Real-world Salesforce automation should be **event-driven**, not trigger-happy
-- Decision elements help prevent unnecessary updates and infinite loops
-- Proper entry conditions significantly improve performance and scalability
-- Salesforce Flows can model real business processes without Apex
-
----
-
-### 📈 Outcome
-✔ Reduced manual status updates  
-✔ Improved recruitment pipeline accuracy  
-✔ Built a production-style automation aligned with real business use cases  
-
----
-
-### 🔜 Next Steps
-- Email notifications for recruiters and candidates  
-- Auto-rejection logic for expired interviews  
-- Approval process integration for offers
+### Key learning
+Effective Salesforce automation should be event-driven, selective, and controlled. Status changes should be driven by meaningful business actions, not by every record edit.
