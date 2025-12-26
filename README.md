@@ -109,3 +109,29 @@ This automation removes manual dependency on recruiters to update application st
 
 ### Key learning
 Effective Salesforce automation should be event-driven, selective, and controlled. Status changes should be driven by meaningful business actions, not by every record edit.
+
+
+## Day 7 – Email Automation with Salesforce Flow
+
+### What I Built
+Implemented email automation for a recruitment workflow using Salesforce Flow.
+
+### Key Work
+- Created **Classic Email Templates** for:
+  - Interview Scheduled
+  - Offer Released
+- Configured **Email Alerts** on the Job Application object
+- Built a **Record-Triggered Flow** to:
+  - Auto-update application status (Applied → Interviewing → Offered)
+  - Trigger email alerts when Interview Date or Offer Date is added
+- Passed **Triggering Record ID** correctly to Email Alerts
+
+### Outcome
+- Recruiters receive instant notifications
+- Status updates are fully automated
+- No manual follow-ups required
+
+### Learnings
+- Email Alerts require Classic Email Templates
+- Correct merge field syntax `{! }` is critical
+- Flows should trigger only on meaningful business events
