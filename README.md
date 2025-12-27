@@ -135,3 +135,45 @@ Implemented email automation for a recruitment workflow using Salesforce Flow.
 - Email Alerts require Classic Email Templates
 - Correct merge field syntax `{! }` is critical
 - Flows should trigger only on meaningful business events
+
+
+# Day 8 – Advanced Salesforce Flow: Status Automation with Email Alerts
+
+## Overview
+Built an advanced Record-Triggered Flow on the Job Application object to automate recruitment stages and notifications in Salesforce.
+
+## What This Flow Does
+- Automatically updates Job Application status based on business logic
+- Sends Interview Scheduled email when Interview Date is added
+- Sends Offer Released email when Offer Date is added
+- Prevents duplicate emails using boolean flags
+- Ensures emails are sent only once per stage
+
+## Flow Logic
+1. Trigger: Job Application record is created or updated
+2. Decision Element:
+   - If Status = Applied AND Interview Email not sent
+     → Update Status to Interviewing
+     → Send Interview Scheduled Email
+     → Mark Interview Email as Sent
+   - If Status = Interviewing AND Offer Email not sent
+     → Update Status to Offered
+     → Send Offer Released Email
+     → Mark Offer Email as Sent
+3. Default path ends flow safely
+
+## Key Salesforce Features Used
+- Record-Triggered Flow
+- Decision Elements
+- Update Records
+- Email Alerts
+- Boolean Flags to prevent re-triggering
+
+## Why This Matters
+This flow follows real-world Salesforce best practices:
+- No duplicate emails
+- Idempotent automation
+- Production-ready logic
+
+## Status
+✅ Completed and tested
