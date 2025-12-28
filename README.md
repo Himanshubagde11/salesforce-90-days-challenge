@@ -177,3 +177,102 @@ This flow follows real-world Salesforce best practices:
 
 ## Status
 ✅ Completed and tested
+
+
+# Day 9 – User Acceptance Testing (UAT)
+**Project:** Recruitment Automation using Salesforce Flow
+
+## Objective
+Validate that the recruitment automation works as expected from a business user perspective, ensuring correct status updates and email notifications without duplication.
+
+## UAT Scope
+Testing was performed on the Job Application object covering:
+- Interview scheduling automation
+- Offer release automation
+- Email notifications
+- Duplicate email prevention logic
+
+## Test Scenarios & Results
+
+### Scenario 1: Interview Scheduled
+**Given**
+- Job Application Status = Applied
+- Interview Date is added
+- Interview Email Sent = False
+
+**When**
+- The record is saved
+
+**Then**
+- Status updates to Interviewing
+- Interview Scheduled email is sent
+- Interview Email Sent flag updates to True
+
+**Result:** Pass
+
+---
+
+### Scenario 2: Prevent Duplicate Interview Email
+**Given**
+- Interview Email Sent = True
+
+**When**
+- Interview Date is updated again
+
+**Then**
+- No duplicate email is sent
+
+**Result:** Pass
+
+---
+
+### Scenario 3: Offer Released
+**Given**
+- Job Application Status = Interviewing
+- Offer Date is added
+- Offer Email Sent = False
+
+**When**
+- The record is saved
+
+**Then**
+- Status updates to Offered
+- Offer Released email is sent
+- Offer Email Sent flag updates to True
+
+**Result:** Pass
+
+---
+
+### Scenario 4: Prevent Duplicate Offer Email
+**Given**
+- Offer Email Sent = True
+
+**When**
+- Offer Date is updated again
+
+**Then**
+- No duplicate email is sent
+
+**Result:** Pass
+
+---
+
+## Validation Summary
+- All automation executed only once per condition
+- Decision logic correctly controlled flow execution
+- Email notifications triggered only when required
+- Data integrity maintained across updates
+
+## Conclusion
+All UAT scenarios passed successfully.  
+The recruitment automation meets business requirements and is ready for production use.
+
+## Tools & Features Used
+- Salesforce Record-Triggered Flow
+- Decision Elements
+- Update Records
+- Email Alerts
+- Custom Boolean Fields
+
+**Status:** UAT Completed and Approved
