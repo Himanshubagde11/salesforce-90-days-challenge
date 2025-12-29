@@ -276,3 +276,26 @@ The recruitment automation meets business requirements and is ready for producti
 - Custom Boolean Fields
 
 **Status:** UAT Completed and Approved
+
+# Day 10 – Salesforce Reports, Dashboards & Flow Monitoring
+
+## What I Built
+- Created recruitment reports for pipeline visibility
+- Designed a management-level dashboard
+- Reviewed Flow execution and error monitoring
+
+## Reports Created
+- Job Applications by Status
+- Interview Pipeline
+- Offer Tracker
+
+## Dashboard
+- Recruitment Overview Dashboard displaying real-time hiring data
+
+## Monitoring
+- Reviewed Paused and Failed Flow Interviews
+- Validated flow execution after automation runs
+
+## Key Learning
+Automation is incomplete without reporting and monitoring.  
+Visibility and reliability are critical for real-world Salesforce implementations.
