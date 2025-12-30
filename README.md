@@ -299,3 +299,58 @@ The recruitment automation meets business requirements and is ready for producti
 ## Key Learning
 Automation is incomplete without reporting and monitoring.  
 Visibility and reliability are critical for real-world Salesforce implementations.
+
+
+# 📅 Day 11 – Security, Error Handling & Production Readiness
+
+## 🔍 Objective
+Strengthen the Recruitment Management application by implementing security controls,
+error handling, access management, and UAT validation to make the solution production-ready.
+
+---
+
+## ✅ Key Implementations
+
+### 🔐 Security Configuration
+- Implemented Object-Level Security (OLS) for Job Application object
+- Configured Field-Level Security (FLS) to protect sensitive fields
+- Validated access using different user profiles
+
+---
+
+### 🧠 Flow Error Handling (Advanced)
+- Added Fault Paths to critical Flow actions
+- Captured system errors using Flow global variables
+- Stored error messages in a custom variable for debugging and audit tracking
+- Ensured graceful failure without breaking user transactions
+
+---
+
+### 📊 Dashboards & Access Control
+- Built Recruitment Overview Dashboard
+- Organized dashboards into a dedicated folder
+- Configured folder-level sharing
+- Verified access by logging in as another user (OrgFarm EPIC)
+
+---
+
+### 🧪 UAT & Optimization Review
+- Performed User Acceptance Testing (UAT) for all automation scenarios
+- Reviewed Flow DML operations for optimization
+- Ensured no recursion or governor limit risks
+
+---
+
+## 🛠 Salesforce Features Used
+- Record-Triggered Flows
+- Decision Elements
+- Fault Paths & Assignments
+- Object-Level & Field-Level Security
+- Reports & Dashboards
+- Folder Sharing & Access Validation
+
+---
+
+## 📌 Outcome
+The application is now secure, error-resilient, and production-ready,
+aligned with real-world Salesforce implementation standards.
