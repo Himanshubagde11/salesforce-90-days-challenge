@@ -354,3 +354,112 @@ error handling, access management, and UAT validation to make the solution produ
 ## 📌 Outcome
 The application is now secure, error-resilient, and production-ready,
 aligned with real-world Salesforce implementation standards.
+
+
+## Day 12 – Validation Architecture & Data Integrity
+
+### What I Focused On
+- Reviewed existing validation rules to avoid duplication
+- Learned how to decide **where validation logic belongs**:
+  - Validation Rules
+  - Flow
+  - Apex (future use)
+- Implemented only **universal, single-record validations**
+
+### Key Learnings
+- Validation Rules should enforce **hard data integrity**
+- Business rules with exceptions should not be forced into validation rules
+- Over-validating leads to poor UX and maintenance issues
+
+### Outcome
+Established a clean validation strategy focused on data integrity without overlapping or redundant rules.
+
+## Day 13 – Flow Fault Paths & Error Handling
+
+### What I Worked On
+- Enhanced existing record-triggered flows with fault paths
+- Created a text variable to capture system error messages
+- Used Assignment elements to store fault messages
+- Ensured flow failures do not crash user transactions silently
+
+### Key Learnings
+- Fault paths are essential for production-grade flows
+- Capturing errors helps with debugging and system reliability
+- Error handling is as important as business logic
+
+### Outcome
+Built resilient automation that can gracefully handle failures instead of breaking user operations.
+
+## Day 14 – Automation Design Thinking (Flow vs Apex)
+
+### What I Learned
+- When to use Flow vs when Apex is a better choice
+- Impact of multiple DML operations in automation
+- How poor automation design can hit governor limits
+
+### Key Learnings
+- Flow is preferred for simple, declarative automation
+- Apex is required for complex, cross-object, or bulk logic
+- Design decisions matter more than tool choice
+
+### Outcome
+Developed a clearer decision-making framework for choosing the right automation approach.
+
+## Day 15 – Security Awareness in Automation
+
+### What I Focused On
+- Reviewed Object-Level Security (OLS) and Field-Level Security (FLS)
+- Understood how automation behaves under different user permissions
+- Learned why flows can fail due to missing access
+
+### Key Learnings
+- Automation runs in system context but still respects some security rules
+- Security misconfiguration is a common cause of automation failures
+- Permission sets are safer than modifying profiles
+
+### Outcome
+Improved understanding of building automation that works correctly across different user roles.
+
+## Day 16 – Salesforce Platform Internals & Execution Awareness
+
+### What I Learned
+- High-level Salesforce transaction lifecycle
+- Order of execution (validations, flows, automation)
+- Conceptual understanding of governor limits
+- How bad design decisions impact system performance
+
+### Key Learnings
+- Knowing execution order is critical before writing Apex
+- Performance issues often start with poor design, not code
+- Platform awareness is required for scalable solutions
+
+### Outcome
+Built a strong mental model of how Salesforce processes data behind the scenes.
+
+## Day 17 – SOQL Fundamentals & Using SOQL in Apex
+
+### What I Learned Today
+- Learned how Salesforce retrieves data using SOQL
+- Practiced writing efficient SOQL queries using SELECT, WHERE, and LIMIT
+- Understood why querying only required fields is critical for performance
+- Executed SOQL queries inside Apex using Execute Anonymous
+- Stored query results in Apex Lists and reviewed output using debug logs
+- Learned the most important best practice: **Never use SOQL inside loops**
+
+### Why This Is Important
+SOQL inside Apex is the foundation for:
+- Triggers
+- Apex classes
+- LWC backend controllers
+
+Poorly written SOQL can easily hit governor limits and break applications, so understanding efficient querying is critical before moving deeper into Apex.
+
+### Sample Apex Code
+```apex
+List<Job_Application__c> apps =
+    [SELECT Id, Name, Status__c
+     FROM Job_Application__c
+     WHERE Status__c = 'Interviewing'
+     LIMIT 5];
+
+System.debug(apps);
