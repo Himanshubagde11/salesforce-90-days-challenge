@@ -464,6 +464,7 @@ List<Job_Application__c> apps =
 
 System.debug(apps);
 
+---
 
 ## Day 18 – SOQL Relationship Queries (Parent ↔ Child)
 
