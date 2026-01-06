@@ -463,3 +463,41 @@ List<Job_Application__c> apps =
      LIMIT 5];
 
 System.debug(apps);
+
+
+## Day 18 – SOQL Relationship Queries (Parent ↔ Child)
+
+### Objective
+Learn how to query related records in Salesforce using SOQL relationship queries and execute them inside Apex.
+
+---
+
+### What I Learned Today
+
+- Understood Salesforce data relationships (Lookup-based)
+- Practiced **Child-to-Parent** SOQL queries using relationship fields (`__r`)
+- Practiced **Parent-to-Child** SOQL queries using subqueries
+- Learned how to identify the correct **Child Relationship Name**
+- Executed relationship queries inside Apex using Execute Anonymous
+
+---
+
+### Child to Parent Query (Job Application → Company)
+
+```Apex
+List<Job_Application__c> applications =
+    [SELECT Id, Name, Status__c, Company__r.Name
+     FROM Job_Application__c
+     LIMIT 5];
+
+System.debug(applications);
+
+### Parent to Child Query (Company → Job Application)
+```Apex
+List<Company__c> companies =
+    [SELECT Id, Name,
+        (SELECT Id, Name, Status__c FROM Job_Applications__r)
+     FROM Company__c
+     LIMIT 3];
+
+System.debug(companies);
