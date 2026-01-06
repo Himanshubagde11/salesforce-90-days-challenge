@@ -463,7 +463,7 @@ List<Job_Application__c> apps =
      LIMIT 5];
 
 System.debug(apps);
-
+```
 ---
 
 ## Day 18 – SOQL Relationship Queries (Parent ↔ Child)
@@ -492,7 +492,7 @@ List<Job_Application__c> applications =
      LIMIT 5];
 
 System.debug(applications);
-
+```
 ### Parent to Child Query (Company → Job Application)
 ```Apex
 List<Company__c> companies =
@@ -502,3 +502,4 @@ List<Company__c> companies =
      LIMIT 3];
 
 System.debug(companies);
+```
