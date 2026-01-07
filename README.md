@@ -503,3 +503,34 @@ List<Company__c> companies =
 
 System.debug(companies);
 ```
+---
+
+## Day 19 Aggregate SOQL (COUNT, GROUP BY)
+
+### Objective
+Learn how to perform data aggregation in Salesforce using SOQL instead of manual Apex loops.
+
+---
+
+### What I Learned Today
+- Used aggregate functions like COUNT() and SUM() in SOQL
+- Grouped records using GROUP BY to summarize data
+- Executed aggregate queries inside Apex using AggregateResult
+- Learned how to read aggregate values using alias names
+- Understood why Aggregate SOQL is preferred over looping in Apex for performance
+
+---
+
+### Sample Aggregate Query (Count per Status)
+```apex
+List<AggregateResult> results =
+    [SELECT Status__c status, COUNT(Id) total
+     FROM Job_Application__c
+     GROUP BY Status__c];
+
+for (AggregateResult ar : results) {
+    System.debug('Status: ' + ar.get('status'));
+    System.debug('Total: ' + ar.get('total'));
+}
+```
+---
