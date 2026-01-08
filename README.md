@@ -534,3 +534,34 @@ for (AggregateResult ar : results) {
 }
 ```
 ---
+## Day 20 – Advanced SOQL (WHERE, ORDER BY, HAVING, LIMIT)
+
+### Objective
+Learn how to filter, sort, and control Salesforce data efficiently using advanced SOQL features and apply them inside Apex.
+
+---
+
+### What I Learned Today
+- Used `ORDER BY` to sort query results at the database level
+- Controlled data volume using `LIMIT`
+- Filtered aggregated results using `HAVING`
+- Understood the difference between `WHERE` and `HAVING`
+- Executed advanced SOQL queries inside Apex using `AggregateResult`
+- Learned why OFFSET should be avoided for large datasets
+
+---
+
+### Sample SOQL with HAVING and ORDER BY
+```apex
+List<AggregateResult> results =
+    [SELECT Status__c status, COUNT(Id) total
+     FROM Job_Application__c
+     GROUP BY Status__c
+     HAVING COUNT(Id) > 1
+     ORDER BY COUNT(Id) DESC];
+
+for (AggregateResult ar : results) {
+    System.debug(ar.get('status') + ' → ' + ar.get('total'));
+}
+```
+---
