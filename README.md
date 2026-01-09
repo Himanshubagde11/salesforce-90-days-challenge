@@ -565,3 +565,34 @@ for (AggregateResult ar : results) {
 }
 ```
 ---
+## Day 21 — Dynamic SOQL in Apex
+
+### Objective
+Learn how to build and execute dynamic SOQL queries in Apex using bind variables.
+
+---
+
+### What I Learned
+- Difference between static SOQL and dynamic SOQL
+- How to use `Database.query()` in Apex
+- How bind variables (`:variableName`) work in dynamic queries
+- Importance of declaring Apex variables before using them in SOQL
+- How dynamic SOQL helps build flexible, reusable queries
+
+---
+
+### Sample Code
+
+```apex
+String statusFilter = 'Interviewing';
+
+String query =
+    'SELECT Id, Name, Status__c ' +
+    'FROM Job_Application__c ' +
+    'WHERE Status__c = :statusFilter';
+
+List<Job_Application__c> apps = Database.query(query);
+
+System.debug(apps);
+```
+---
