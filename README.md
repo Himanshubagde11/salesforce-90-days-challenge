@@ -596,3 +596,33 @@ List<Job_Application__c> apps = Database.query(query);
 System.debug(apps);
 ```
 ---
+## Day 22 — Advanced Aggregate SOQL (COUNT, SUM, AVG, HAVING)
+
+### Objective
+Learn how to answer real business questions using advanced Aggregate SOQL instead of Apex loops.
+
+---
+
+### What I Learned Today
+- Used aggregate functions: COUNT(), SUM(), AVG(), MIN(), MAX()
+- Grouped records using GROUP BY
+- Filtered aggregated results using HAVING
+- Executed aggregate queries inside Apex using AggregateResult
+- Understood why database-level aggregation is better than Apex calculations
+
+---
+
+### Sample Aggregate SOQL in Apex
+```apex
+List<AggregateResult> results =
+    [SELECT Status__c status, COUNT(Id) total
+     FROM Job_Application__c
+     GROUP BY Status__c
+     HAVING COUNT(Id) > 1];
+
+for (AggregateResult ar : results) {
+    System.debug('Status: ' + ar.get('status'));
+    System.debug('Count: ' + ar.get('total'));
+}
+```
+---
