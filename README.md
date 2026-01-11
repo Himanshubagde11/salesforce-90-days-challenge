@@ -626,3 +626,36 @@ for (AggregateResult ar : results) {
 }
 ```
 ---
+## Day 23 — SOSL (Salesforce Object Search Language)
+
+### Objective
+Understand how to search data across multiple Salesforce objects using SOSL and execute SOSL queries in Apex.
+
+---
+
+### What I Learned Today
+- Difference between SOQL and SOSL
+- When to use SOSL instead of SOQL
+- Writing SOSL queries using FIND and RETURNING
+- Limiting SOSL search results
+- Executing SOSL in Apex
+- Handling SOSL results using List<List<SObject>>
+
+---
+
+### Sample SOSL in Apex
+
+```apex
+List<List<SObject>> results =
+    [FIND 'Google'
+     IN ALL FIELDS
+     RETURNING Company__c(Id, Name),
+               Job_Application__c(Id, Name)];
+
+List<Company__c> companies = (List<Company__c>) results[0];
+List<Job_Application__c> jobs = (List<Job_Application__c>) results[1];
+
+System.debug(companies);
+System.debug(jobs);
+```
+---
