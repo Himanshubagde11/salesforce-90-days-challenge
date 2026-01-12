@@ -659,3 +659,35 @@ System.debug(companies);
 System.debug(jobs);
 ```
 ---
+# Day 24 — Apex DML Operations (Insert, Update, Delete, Upsert)
+
+### Objective
+Understand how Salesforce data is created, updated, and managed using Apex DML operations while following governor-limit best practices.
+
+---
+
+### What I Learned Today
+- Used Apex DML operations: insert, update, delete, undelete, and upsert
+- Learned why DML should never be used inside loops
+- Performed bulk DML operations using Lists
+- Used Database methods to handle partial success and error handling
+- Understood governor limits related to DML operations
+
+---
+
+### Sample DML Code
+
+```apex
+List<Job_Application__c> apps = new List<Job_Application__c>();
+
+apps.add(new Job_Application__c(Name='App 1', Status__c='Applied'));
+apps.add(new Job_Application__c(Name='App 2', Status__c='Interviewing'));
+
+Database.SaveResult[] results = Database.insert(apps, false);
+
+for(Database.SaveResult sr : results) {
+    if(!sr.isSuccess()) {
+        System.debug(sr.getErrors()[0].getMessage());
+    }
+}
+```
