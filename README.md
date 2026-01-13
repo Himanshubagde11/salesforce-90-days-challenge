@@ -691,3 +691,31 @@ for(Database.SaveResult sr : results) {
     }
 }
 ```
+---
+
+## Day 25 - Apex Triggers (Before vs After)
+
+### Objective
+Understand why Apex Triggers exist, when they execute, and how to use BEFORE and AFTER triggers correctly.
+
+---
+
+### What I Learned Today
+- What Apex Triggers are and why they are used
+- Difference between BEFORE and AFTER triggers
+- When to update the same record vs related records
+- Trigger context variables such as Trigger.new, Trigger.old, Trigger.isBefore, and Trigger.isAfter
+- Why triggers run automatically for all data changes (UI, API, Flow, Data Loader)
+
+---
+
+### Sample Trigger (Before Insert)
+
+```apex
+trigger JobApplicationTrigger on Job_Application__c (before insert) {
+    for (Job_Application__c app : Trigger.new) {
+        app.Status__c = 'Applied';
+    }
+}
+```
+---
