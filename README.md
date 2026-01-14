@@ -719,3 +719,42 @@ trigger JobApplicationTrigger on Job_Application__c (before insert) {
 }
 ```
 ---
+## Day 26 — Apex Trigger & Handler Pattern (Production Basics)
+
+### Objective
+Understand how Salesforce Apex Triggers work and implement the **Trigger + Handler pattern** to follow industry-standard best practices.
+
+---
+
+### What I Learned
+- Triggers are **not Apex classes** and must be created as a separate Trigger component.
+- Business logic should **never be written directly inside triggers**.
+- Triggers should act as a dispatcher and delegate logic to a **Handler class**.
+- Salesforce enforces separation of concerns for scalability and maintainability.
+- How to debug common Apex compile-time errors like:
+  - `Unexpected token 'trigger'`
+  - `Cannot save a trigger during a class save`
+
+---
+
+### Trigger Implementation
+```apex
+trigger JobApplicationTrigger on Job_Application__c (before insert) {
+    if (Trigger.isBefore && Trigger.isInsert) {
+        JobApplicationTriggerHandler.beforeInsert(Trigger.new);
+    }
+}
+```
+### Trigger Handler Class
+```apex
+public class JobApplicationTriggerHandler {
+
+    public static void beforeInsert(List<Job_Application__c> newApplications) {
+        for (Job_Application__c app : newApplications) {
+            if (app.Status__c == null) {
+                app.Status__c = 'Applied';
+            }
+        }
+    }
+}
+```
