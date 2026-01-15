@@ -758,3 +758,72 @@ public class JobApplicationTriggerHandler {
     }
 }
 ```
+---
+## Day 27 — Apex Bulkification & Governor Limits
+
+### Objective
+Learn how to write **production-ready Apex triggers** that safely handle **bulk data operations** without hitting Salesforce governor limits.
+
+---
+
+### Problem Statement
+Salesforce enforces strict governor limits:
+- Max **100 SOQL queries**
+- Max **150 DML statements** per transaction
+
+Triggers often fail in production when:
+- SOQL queries are placed **inside loops**
+- Code works for 1 record but fails for bulk inserts/updates
+
+---
+
+### Key Concepts Learned
+- Why triggers always execute in **bulk context**
+- Why **SOQL/DML inside loops** is dangerous
+- How to use **Set** to collect record IDs
+- How to use **Map<Id, SObject>** for fast lookups
+- How to design **bulk-safe trigger handlers**
+
+---
+
+### Implementation (Bulk-Safe Pattern)
+
+#### Step 1️ Collect related record IDs
+```apex
+Set<Id> companyIds = new Set<Id>();
+
+for (Job_Application__c app : newRecords) {
+    if (app.Company__c != null) {
+        companyIds.add(app.Company__c);
+    }
+}
+```
+#### Step 2 Query Releted Record Once
+```apex
+Map<Id, Company__c> companyMap = new Map<Id, Company__c>(
+    [SELECT Id, Name FROM Company__c WHERE Id IN :companyIds]
+);
+```
+####  Step 3 Apply business logic using map
+```apex
+for (Job_Application__c app : newRecords) {
+    Company__c comp = companyMap.get(app.Company__c);
+    if (comp != null) {
+        // Business logic here
+    }
+}
+```
+### Bulk Test (Execute Anonymous)
+```apex
+List<Job_Application__c> apps = new List<Job_Application__c>();
+
+for (Integer i = 0; i < 50; i++) {
+    apps.add(new Job_Application__c(
+        Name = 'Bulk App ' + i,
+        Status__c = 'Applied'
+    ));
+}
+
+insert apps;
+```
+---
