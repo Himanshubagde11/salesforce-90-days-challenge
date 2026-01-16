@@ -827,3 +827,96 @@ for (Integer i = 0; i < 50; i++) {
 insert apps;
 ```
 ---
+## Day 28 Trigger Recursion Guard (Prevent Infinite Loops)
+
+### Objective
+Implement a recursion guard pattern in Salesforce Apex triggers to prevent infinite trigger execution caused by internal DML operations.
+
+---
+
+### Problem
+Triggers can re-execute when:
+- A trigger updates the same object
+- Workflow / Flow / Process Builder updates the record
+- Multiple trigger events fire in a single transaction
+
+This can cause:
+- Infinite loops
+- Governor limit exceptions
+- Data inconsistency
+
+---
+
+### Solution
+Use a static variable as a recursion guard so trigger logic runs only once per transaction.
+
+---
+
+### Trigger Execution Control Class
+```apex
+public class TriggerExecutionControl {
+    public static Boolean hasRun = false;
+}
+```
+### Trigger Implementation
+```apex
+trigger JobApplicationTrigger on Job_Application__c (before insert, before update) {
+
+    // Recursion Guard
+    if (TriggerExecutionControl.hasRun) {
+        return;
+    }
+    TriggerExecutionControl.hasRun = true;
+
+    if (Trigger.isBefore && Trigger.isInsert) {
+        JobApplicationTriggerHandler.beforeInsert(Trigger.new);
+    }
+
+    if (Trigger.isBefore && Trigger.isUpdate) {
+        JobApplicationTriggerHandler.beforeUpdate(
+            Trigger.new,
+            Trigger.oldMap
+        );
+    }
+}
+
+```
+### Trigger Handler Class
+```apex
+public class JobApplicationTriggerHandler {
+
+    public static void beforeInsert(List<Job_Application__c> newList) {
+        for (Job_Application__c app : newList) {
+            if (app.Status__c == null) {
+                app.Status__c = 'Applied';
+            }
+        }
+    }
+
+    public static void beforeUpdate(
+        List<Job_Application__c> newList,
+        Map<Id, Job_Application__c> oldMap
+    ) {
+        for (Job_Application__c newRec : newList) {
+            Job_Application__c oldRec = oldMap.get(newRec.Id);
+
+            if (newRec.Status__c != oldRec.Status__c) {
+                System.debug(
+                    'Status changed from ' +
+                    oldRec.Status__c +
+                    ' to ' +
+                    newRec.Status__c
+                );
+            }
+        }
+    }
+}
+```
+### Key Learnings
+- Triggers can fire multiple times in one transaction
+- Static variables persist for the full transaction
+- Recursion guards prevent infinite loops
+- Mandatory pattern for production-ready triggers
+- Improves performance and stability
+
+---
