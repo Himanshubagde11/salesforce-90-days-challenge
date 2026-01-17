@@ -920,3 +920,113 @@ public class JobApplicationTriggerHandler {
 - Improves performance and stability
 
 ---
+## Day 29 — Trigger Framework Refactor (Industry Standard)
+
+### Objective
+Refactor Apex Trigger and Handler to follow **industry-standard trigger framework**, eliminate compile/runtime errors, and make logic reusable, testable, and scalable.
+
+---
+
+### Problem Faced
+- Compile errors due to direct usage of `Trigger` context inside handler class
+- Method signature mismatches between Trigger and Handler
+- Repeated execution and unpredictable behavior during insert/update
+
+---
+
+### Solution Implemented
+Implemented a **proper Trigger → Handler architecture** where:
+- Trigger only routes context
+- Handler contains pure business logic
+- No direct `Trigger` references inside handler methods
+
+---
+
+### Final Trigger (Router Only)
+
+```apex
+trigger JobApplicationTrigger on Job_Application__c (
+    before insert,
+    before update,
+    after insert,
+    after update
+) {
+    JobApplicationTriggerHandler.run(
+        Trigger.new,
+        Trigger.oldMap,
+        Trigger.isBefore,
+        Trigger.isAfter,
+        Trigger.isInsert,
+        Trigger.isUpdate
+    );
+}
+```
+### Trigger Handeler  
+```apex
+public class JobApplicationTriggerHandler {
+
+    public static void run(
+        List<Job_Application__c> newList,
+        Map<Id, Job_Application__c> oldMap,
+        Boolean isBefore,
+        Boolean isAfter,
+        Boolean isInsert,
+        Boolean isUpdate
+    ) {
+
+        if (isBefore) {
+            if (isInsert) {
+                beforeInsert(newList);
+            }
+            if (isUpdate) {
+                beforeUpdate(newList, oldMap);
+            }
+        }
+
+        if (isAfter) {
+            if (isInsert) {
+                afterInsert(newList);
+            }
+            if (isUpdate) {
+                afterUpdate(newList, oldMap);
+            }
+        }
+    }
+
+    private static void beforeInsert(List<Job_Application__c> newList) {
+        for (Job_Application__c app : newList) {
+            if (app.Status__c == null) {
+                app.Status__c = 'Applied';
+            }
+        }
+    }
+
+    private static void beforeUpdate(
+        List<Job_Application__c> newList,
+        Map<Id, Job_Application__c> oldMap
+    ) {
+        for (Job_Application__c app : newList) {
+            Job_Application__c oldRec = oldMap.get(app.Id);
+            if (app.Status__c != oldRec.Status__c) {
+                System.debug('Status changed');
+            }
+        }
+    }
+
+    private static void afterInsert(List<Job_Application__c> newList) {
+        // future logic
+    }
+
+    private static void afterUpdate(
+        List<Job_Application__c> newList,
+        Map<Id, Job_Application__c> oldMap
+    ) {
+        // future logic
+    }
+}
+```
+### What I Learned
+- Why handlers must not directly reference Trigger
+- How to design a scalable trigger framework
+- Importance of separating routing and business logic
+- How real production Salesforce code is structured
