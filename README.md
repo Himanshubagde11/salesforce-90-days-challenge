@@ -1030,3 +1030,102 @@ public class JobApplicationTriggerHandler {
 - How to design a scalable trigger framework
 - Importance of separating routing and business logic
 - How real production Salesforce code is structured
+---
+
+# Day 30 — Apex Test Classes (Trigger Validation)
+
+### Objective
+Write meaningful Apex test classes to validate trigger behavior and ensure production-ready deployments.
+
+---
+
+### Why This Matters
+In Salesforce, Apex code **cannot be deployed without tests**.  
+More importantly, good test classes:
+- Prove business logic works
+- Catch edge cases early
+- Protect code during future changes
+- Are heavily evaluated in interviews
+
+Coverage alone is not enough — **assertions matter**.
+
+---
+
+### What Was Tested
+
+#### 1️⃣ Before Insert Logic
+- Verified that `Status__c` is automatically set to **Applied** when not provided.
+- Ensured trigger logic executes correctly during record creation.
+
+#### 2️⃣ Before Update Logic
+- Verified that status updates work correctly.
+- Ensured trigger executes safely during update without errors.
+
+---
+
+### Test Class Implementation
+
+```apex
+@isTest
+public class JobApplicationTriggerHandlerTest {
+
+    @isTest
+    static void testBeforeInsert() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Test Insert'
+        );
+
+        Test.startTest();
+        insert app;
+        Test.stopTest();
+
+        Job_Application__c insertedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Applied',
+            insertedApp.Status__c,
+            'Status should default to Applied on insert'
+        );
+    }
+
+    @isTest
+    static void testBeforeUpdate() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Test Update',
+            Status__c = 'Applied'
+        );
+        insert app;
+
+        app.Status__c = 'Interviewing';
+
+        Test.startTest();
+        update app;
+        Test.stopTest();
+
+        Job_Application__c updatedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Interviewing',
+            updatedApp.Status__c,
+            'Status should update correctly'
+        );
+    }
+}
+```
+### Key Learnings
+
+- Test classes validate behavior, not just coverage
+- Test.startTest() and Test.stopTest() isolate execution
+- Assertions are mandatory for meaningful tests
+- Triggers must be tested for both insert and update paths
+---
