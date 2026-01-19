@@ -1129,3 +1129,70 @@ public class JobApplicationTriggerHandlerTest {
 - Assertions are mandatory for meaningful tests
 - Triggers must be tested for both insert and update paths
 ---
+# Day 31 Apex Test Class & Trigger Coverage
+
+### 🎯 Objective
+Learn how to properly write and execute Apex test classes to validate trigger logic and ensure Salesforce deployment readiness.
+
+---
+
+### 🔍 What I Worked On
+- Created a dedicated **Apex Test Class** for `JobApplicationTriggerHandler`
+- Wrote test methods for:
+  - `before insert` trigger logic
+  - Default field value assignment
+  - Bulk insert scenarios
+- Executed tests using **Apex Test Execution**
+- Verified trigger execution inside test context
+- Ensured assertions validate actual business behavior
+- Achieved required **code coverage (≥ 75%)**
+
+---
+
+### 🧠 Key Learnings
+- Apex test methods must be written inside a class annotated with `@isTest`
+- Every test runs in an isolated test context (no org data access)
+- `Test.startTest()` and `Test.stopTest()` are essential for accurate execution
+- Assertions (`System.assertEquals`) are mandatory — coverage alone is NOT enough
+- Triggers must be tested via DML operations, not direct method calls
+- Bulk testing is critical to avoid governor limit issues
+
+---
+
+### 🧪 Sample Test Logic (Simplified)
+
+```apex
+@isTest
+public class JobApplicationTriggerHandlerTest {
+
+    @isTest
+    static void testBeforeInsert_DefaultStatus() {
+        List<Job_Application__c> apps = new List<Job_Application__c>();
+
+        for (Integer i = 0; i < 5; i++) {
+            apps.add(new Job_Application__c(
+                Name = 'Test Application ' + i
+            ));
+        }
+
+        Test.startTest();
+        insert apps;
+        Test.stopTest();
+
+        List<Job_Application__c> insertedApps = [
+            SELECT Status__c FROM Job_Application__c
+        ];
+
+        for (Job_Application__c app : insertedApps) {
+            System.assertEquals('Applied', app.Status__c);
+        }
+    }
+}
+```
+### Outcome
+- Trigger logic validated through tests
+- No runtime or validation errors
+- Production-ready Apex with verified behavior
+- Strong foundation for deployment and interviews
+
+---
