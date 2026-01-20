@@ -1196,3 +1196,76 @@ public class JobApplicationTriggerHandlerTest {
 - Strong foundation for deployment and interviews
 
 ---
+# Day 32 Exception Handling in Apex
+
+### 🎯 Objective
+Implement proper exception handling in Apex to make trigger logic safer, more reliable, and production-ready.
+
+---
+
+### 🔍 What I Worked On
+- Added `try–catch` blocks in trigger handler methods
+- Handled `DmlException` separately to capture meaningful error details
+- Logged clear debug messages to improve traceability
+- Wrote test logic to intentionally trigger and validate exception scenarios
+
+---
+
+### 🧠 Why This Matters
+In real Salesforce implementations:
+- DML operations can fail due to validation rules, missing fields, or data integrity issues
+- Unhandled exceptions break user transactions and reduce system reliability
+- Proper exception handling ensures failures are predictable and debuggable
+
+Exception handling is a critical part of writing maintainable and enterprise-grade Apex.
+
+---
+
+### 🧩 Sample Implementation
+
+```apex
+private static void beforeInsert(List<Job_Application__c> newList) {
+    try {
+        for (Job_Application__c app : newList) {
+            if (app.Status__c == null) {
+                app.Status__c = 'Applied';
+            }
+        }
+    } catch (Exception e) {
+        System.debug('Error in beforeInsert: ' + e.getMessage());
+    }
+}
+```
+```
+public static void safeUpdate(List<Job_Application__c> apps) {
+    try {
+        update apps;
+    } catch (DmlException e) {
+        System.debug('DML Error: ' + e.getDmlMessage(0));
+    }
+}
+```
+### 🧪 Testing Exception Scenarios
+```apex
+@isTest
+static void testExceptionHandling() {
+    Job_Application__c app = new Job_Application__c();
+
+    Test.startTest();
+    try {
+        insert app;
+    } catch (DmlException e) {
+        System.assert(
+            e.getMessage().contains('Required fields are missing'),
+            'Expected DML exception for missing required fields'
+        );
+    }
+    Test.stopTest();
+}
+```
+### ✅ Outcome
+
+- Trigger logic now fails gracefully instead of crashing
+- Errors are logged with meaningful messages
+- Exception scenarios are explicitly tested
+- Apex code is safer and more production-ready
