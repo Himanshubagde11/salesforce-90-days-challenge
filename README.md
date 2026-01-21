@@ -1269,3 +1269,98 @@ static void testExceptionHandling() {
 - Errors are logged with meaningful messages
 - Exception scenarios are explicitly tested
 - Apex code is safer and more production-ready
+---
+
+# Day 33 Asynchronous Apex (@future) + Testing
+
+### Objective
+Learn how to implement asynchronous Apex using `@future` methods and validate async behavior through proper test execution.
+
+---
+
+### What I Worked On
+- Implemented an `@future` method to process Job Application records asynchronously
+- Passed record IDs as primitives to comply with async method requirements
+- Updated records in a separate transaction without blocking the main flow
+- Created a dedicated test class to validate async execution
+- Used `Test.startTest()` and `Test.stopTest()` to force future method execution
+- Verified data changes using assertions
+
+---
+
+### Key Learnings
+- `@future` methods run in a separate transaction and cannot return values
+- Only primitive data types (e.g., `Set<Id>`) are allowed as parameters
+- Async code does not execute in tests unless wrapped with `Test.startTest()` and `Test.stopTest()`
+- Validation rules still apply during async DML operations
+- Proper test data must satisfy all business rules
+
+---
+
+### Future Method Implementation
+
+```apex
+public class JobApplicationAsyncService {
+
+    @future
+    public static void processApplications(Set<Id> applicationIds) {
+
+        List<Job_Application__c> apps = [
+            SELECT Id, Status__c
+            FROM Job_Application__c
+            WHERE Id IN :applicationIds
+        ];
+
+        for (Job_Application__c app : apps) {
+            app.Status__c = 'Interviewing';
+        }
+
+        if (!apps.isEmpty()) {
+            update apps;
+        }
+    }
+}
+```
+### Test Class for Async Apex
+```apex
+@isTest
+public class JobApplicationAsyncServiceTest {
+
+    @isTest
+    static void testFutureMethod() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Future Test App',
+            Status__c = 'Applied',
+            Interview_Date__c = Date.today().addDays(1),
+            Position__c = 'Software Engineer',
+            Expected_salary__c = 30000
+        );
+        insert app;
+
+        Set<Id> ids = new Set<Id>{ app.Id };
+
+        Test.startTest();
+        JobApplicationAsyncService.processApplications(ids);
+        Test.stopTest();
+
+        Job_Application__c updatedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Interviewing',
+            updatedApp.Status__c,
+            'Future method should update status'
+        );
+    }
+}
+```
+### Outcome
+
+- Asynchronous logic executed successfully
+- Future method behavior validated through tests
+- No runtime or validation errors
+- Production-ready async Apex with proper test coverage
