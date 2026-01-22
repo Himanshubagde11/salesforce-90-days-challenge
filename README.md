@@ -1364,3 +1364,104 @@ public class JobApplicationAsyncServiceTest {
 - Future method behavior validated through tests
 - No runtime or validation errors
 - Production-ready async Apex with proper test coverage
+---
+
+# Day 34 Queueable Apex (Asynchronous Processing)
+
+### Objective
+Implement Queueable Apex to perform asynchronous processing in a scalable, production-ready way and validate its behavior using proper test classes.
+
+---
+
+### What I Worked On
+- Implemented a Queueable Apex class to process Job Application records asynchronously
+- Passed record IDs using a constructor for clean data handling
+- Updated records in a separate transaction without blocking the main process
+- Enqueued the job using `System.enqueueJob`
+- Created and executed a dedicated test class for Queueable Apex
+- Verified async execution using `Test.startTest()` and `Test.stopTest()`
+
+---
+
+### Why Queueable Apex
+Compared to `@future`, Queueable Apex:
+- Supports chaining of jobs
+- Allows passing complex data structures via constructors
+- Provides better control and readability
+- Is the preferred async pattern in real Salesforce projects
+
+---
+
+### Queueable Apex Implementation
+
+```apex
+public class JobApplicationQueueable implements Queueable {
+
+    private Set<Id> applicationIds;
+
+    public JobApplicationQueueable(Set<Id> applicationIds) {
+        this.applicationIds = applicationIds;
+    }
+
+    public void execute(QueueableContext context) {
+
+        List<Job_Application__c> apps = [
+            SELECT Id, Status__c
+            FROM Job_Application__c
+            WHERE Id IN :applicationIds
+        ];
+
+        for (Job_Application__c app : apps) {
+            app.Status__c = 'Interviewing';
+        }
+
+        if (!apps.isEmpty()) {
+            update apps;
+        }
+    }
+}
+```
+### Test Class for Queueable Apex
+```apex
+@isTest
+public class JobApplicationQueueableTest {
+
+    @isTest
+    static void testQueueableJob() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Queueable Test',
+            Status__c = 'Applied',
+            Interview_Date__c = Date.today().addDays(1),
+            Position__c = 'Developer',
+            Expected_salary__c = 30000
+        );
+        insert app;
+
+        Set<Id> ids = new Set<Id>{ app.Id };
+
+        Test.startTest();
+        System.enqueueJob(new JobApplicationQueueable(ids));
+        Test.stopTest();
+
+        Job_Application__c updatedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Interviewing',
+            updatedApp.Status__c,
+            'Queueable job should update status correctly'
+        );
+    }
+}
+```
+### Outcome
+
+- Queueable job executed successfully
+- Asynchronous logic validated through test class
+- No runtime or validation errors
+- Production-ready async Apex implementation
+---
