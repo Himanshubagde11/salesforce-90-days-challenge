@@ -1465,3 +1465,89 @@ public class JobApplicationQueueableTest {
 - No runtime or validation errors
 - Production-ready async Apex implementation
 ---
+
+# Day 35 Queueable Apex Chaining with Recursion Control
+
+### Objective
+Implement Queueable Apex with chaining **without causing infinite recursion or stack depth errors**, and validate behavior using tests.
+
+---
+
+## Queueable Apex Implementation
+
+```apex
+public class JobApplicationQueueable implements Queueable {
+
+    private Set<Id> applicationIds;
+    private static Boolean hasRun = false; // recursion guard
+
+    public JobApplicationQueueable(Set<Id> ids) {
+        this.applicationIds = ids;
+    }
+
+    public void execute(QueueableContext context) {
+
+        // Prevent infinite queueable chaining
+        if (hasRun) {
+            return;
+        }
+        hasRun = true;
+
+        List<Job_Application__c> apps = [
+            SELECT Id, Status__c
+            FROM Job_Application__c
+            WHERE Id IN :applicationIds
+        ];
+
+        for (Job_Application__c app : apps) {
+            app.Status__c = 'Interviewing';
+        }
+
+        if (!apps.isEmpty()) {
+            update apps;
+        }
+    }
+}
+```
+### Queueable Test Class
+```apex
+@isTest
+public class JobApplicationQueueableTest {
+
+    @isTest
+    static void testQueueableExecution() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Queueable Test',
+            Status__c = 'Applied',
+            Interview_Date__c = Date.today().addDays(1),
+            Position__c = 'Developer',
+            Expected_salary__c = 30000
+        );
+        insert app;
+
+        Test.startTest();
+        System.enqueueJob(
+            new JobApplicationQueueable(new Set<Id>{ app.Id })
+        );
+        Test.stopTest();
+
+        Job_Application__c updatedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Interviewing',
+            updatedApp.Status__c
+        );
+    }
+}
+```
+## Key Learnings
+
+- Queueable jobs must use recursion guards
+- Chaining without conditions leads to System.AsyncException: Maximum stack depth
+- Always validate async logic using Test.startTest() / Test.stopTest()
+- Defensive coding is mandatory for production-ready Apex
