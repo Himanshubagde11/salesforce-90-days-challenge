@@ -1551,3 +1551,68 @@ public class JobApplicationQueueableTest {
 - Chaining without conditions leads to System.AsyncException: Maximum stack depth
 - Always validate async logic using Test.startTest() / Test.stopTest()
 - Defensive coding is mandatory for production-ready Apex
+---
+
+# Day 36 Batch Apex Testing & Execution Control
+
+### Objective
+Implement and successfully test **Batch Apex execution** while handling Salesforce test limitations related to `executeBatch`.
+
+---
+
+### What I Worked On
+- Built and tested a **Batch Apex class** for processing `Job_Application__c` records.
+- Faced and resolved the common Salesforce testing error:
+  > *No more than one executeBatch can be called from within a test method*
+- Learned how **batch size and iterable size** directly affect test execution.
+- Ensured only **one batch execution** occurs during tests.
+
+---
+
+### Key Learnings
+- In test context, Salesforce allows **only ONE `executeBatch()` call**.
+- If `start()` returns more records than the batch size → Salesforce internally triggers multiple executions → test fails.
+- Solution:
+  - Control test data size
+  - Match iterable size with batch size
+- Batch tests must be **predictable and controlled**, not “realistic scale”.
+
+---
+
+### Sample Batch Test Code (Final Working Version)
+
+```apex
+@isTest
+public class JobApplicationBatchTest {
+
+    @isTest
+    static void testBatchExecution() {
+
+        // Create minimal test data
+        List<Job_Application__c> apps = new List<Job_Application__c>();
+        for (Integer i = 0; i < 5; i++) {
+            apps.add(new Job_Application__c(
+                Name = 'Batch Test ' + i,
+                Status__c = 'Applied'
+            ));
+        }
+        insert apps;
+
+        Test.startTest();
+        // Batch size matches iterable size → single execution
+        Database.executeBatch(new JobApplicationBatch(), 5);
+        Test.stopTest();
+
+        // Verify outcome
+        List<Job_Application__c> updatedApps = [
+            SELECT Status__c
+            FROM Job_Application__c
+        ];
+
+        for (Job_Application__c app : updatedApps) {
+            System.assertNotEquals(null, app.Status__c);
+        }
+    }
+}
+```
+---
