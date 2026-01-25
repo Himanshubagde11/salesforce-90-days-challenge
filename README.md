@@ -1616,3 +1616,86 @@ public class JobApplicationBatchTest {
 }
 ```
 ---
+# Day 37  Schedulable Apex (Automating Batch Jobs)
+
+### Objective
+Implement **Schedulable Apex** to automate Batch Apex execution using cron expressions and validate scheduler behavior through Apex tests.
+
+---
+
+## What I Worked On
+- Created a **Schedulable Apex** class to trigger Batch Apex automatically
+- Scheduled Batch execution using **cron expressions**
+- Learned how Salesforce handles scheduled jobs internally
+- Wrote and executed a **test class for Schedulable Apex**
+- Validated job registration using `CronTrigger`
+
+---
+
+## Schedulable Apex Implementation
+
+```apex
+global class JobApplicationScheduler implements Schedulable {
+
+    global void execute(SchedulableContext sc) {
+        Database.executeBatch(new JobApplicationBatch(), 1);
+    }
+}
+```
+## Purpose
+
+- Separates when the job runs (Scheduler)
+- From what the job does (Batch Apex)
+- This is the standard enterprise pattern in Salesforce
+
+## Scheduling the Job (Execute Anonymous)
+```apex
+String cronExp = '0 0 2 * * ?'; // Runs daily at 2 AM
+
+System.schedule(
+    'Daily Job Application Batch',
+    cronExp,
+    new JobApplicationScheduler()
+);
+```
+## Test Class for Schedulable Apex
+```apex
+@isTest
+public class JobApplicationSchedulerTest {
+
+    @isTest
+    static void testScheduler() {
+
+        Test.startTest();
+        String jobId = System.schedule(
+            'Test Scheduler Job',
+            '0 0 0 1 1 ? 2050',
+            new JobApplicationScheduler()
+        );
+        Test.stopTest();
+
+        CronTrigger ct = [
+            SELECT Id, CronExpression, TimesTriggered
+            FROM CronTrigger
+            WHERE Id = :jobId
+        ];
+
+        System.assertEquals(0, ct.TimesTriggered);
+    }
+}
+```
+## Key Learnings
+
+- Schedulable Apex is used to automate Batch or Queueable jobs
+- Cron expressions define when a job runs
+- Scheduled jobs must be tested by validating job registration, not execution timing
+- Batch + Scheduler is a common production pattern
+
+## Concepts Covered
+
+- Schedulable Apex
+- Cron expressions
+- Batch automation
+- Apex scheduler testing
+- Salesforce async architecture
+---
