@@ -1699,3 +1699,93 @@ public class JobApplicationSchedulerTest {
 - Apex scheduler testing
 - Salesforce async architecture
 ---
+# Day 38 Stateful Batch Apex (Final, Tested & Working)
+
+##  Overview
+Today’s focus was on **Stateful Batch Apex** and **writing a correct test class** that respects Salesforce’s testing constraints.
+
+This task involved fixing one of the most common (and tricky) Apex errors:
+>  *No more than one executeBatch can be called from within a test method*
+
+After restructuring the batch and test logic correctly, the batch executed successfully and all tests passed.
+
+---
+
+##  Key Concepts Implemented
+- `Database.Batchable<SObject>`
+- `Database.Stateful`
+- Controlled batch size for testing
+- Proper `Test.startTest()` / `Test.stopTest()`
+- Safe aggregation using stateful variables
+
+---
+
+##  Batch Apex Class (Stateful)
+
+```apex
+public class JobApplicationStatefulBatch
+    implements Database.Batchable<SObject>, Database.Stateful {
+
+    public Integer processedCount = 0;
+
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator(
+            'SELECT Id, Status__c FROM Job_Application__c WHERE Status__c = \'Applied\''
+        );
+    }
+
+    public void execute(Database.BatchableContext bc, List<Job_Application__c> scope) {
+        for (Job_Application__c app : scope) {
+            app.Status__c = 'Interviewing';
+            processedCount++;
+        }
+        update scope;
+    }
+
+    public void finish(Database.BatchableContext bc) {
+        System.debug('Total Records Processed: ' + processedCount);
+    }
+}
+```
+## Test Class (Correct & Passing)
+```apex
+@isTest
+public class JobApplicationStatefulBatchTest {
+
+    @isTest
+    static void testStatefulBatch() {
+
+        // Test Data
+        List<Job_Application__c> apps = new List<Job_Application__c>();
+        for (Integer i = 0; i < 5; i++) {
+            apps.add(new Job_Application__c(
+                Name = 'Batch App ' + i,
+                Status__c = 'Applied',
+                Interview_Date__c = Date.today().addDays(1),
+                Position__c = 'Developer',
+                Expected_salary__c = 30000
+            ));
+        }
+        insert apps;
+
+        Test.startTest();
+        Database.executeBatch(new JobApplicationStatefulBatch(), 5);
+        Test.stopTest();
+
+        // Verification
+        Integer countUpdated = [
+            SELECT COUNT()
+            FROM Job_Application__c
+            WHERE Status__c = 'Interviewing'
+        ];
+
+        System.assertEquals(5, countUpdated, 'All records should be updated');
+    }
+}
+```
+## Outcome
+
+- Stateful variable preserved across batch executions
+- Single executeBatch() invocation in test
+- Clean PASS in Application Test Execution
+- Production-safe batch pattern
