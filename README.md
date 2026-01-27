@@ -1789,3 +1789,71 @@ public class JobApplicationStatefulBatchTest {
 - Single executeBatch() invocation in test
 - Clean PASS in Application Test Execution
 - Production-safe batch pattern
+
+# Day 39 Schedulable Apex (Batch Automation) V2
+
+### Objective
+Automate Batch Apex execution using **Schedulable Apex** and handle platform constraints related to scheduled jobs.
+
+---
+
+### What I Implemented
+- Created a `Schedulable` Apex class to trigger Batch Apex
+- Scheduled the job using a CRON expression via `System.schedule`
+- Handled Salesforce limitation allowing only one scheduled job per class
+- Verified job registration using `CronTrigger`
+- Wrote and executed a scheduler test class
+
+---
+
+### Scheduler Class
+
+```apex
+public class JobApplicationSchedulerV2 implements Schedulable {
+
+    public void execute(SchedulableContext sc) {
+        Database.executeBatch(new JobApplicationBatch(), 50);
+    }
+}
+```
+### Scheduling the Job (Execute Anonymous)
+```apex
+System.schedule(
+    'Job Application Daily Scheduler',
+    '0 0 12 * * ?',
+    new JobApplicationSchedulerV2()
+);
+```
+### Scheduler Test Class
+```apex
+@isTest
+public class JobApplicationSchedulerTestV2 {
+
+    @isTest
+    static void testSchedulerExecutionV2() {
+
+        Test.startTest();
+        System.schedule(
+            'Test Scheduler Job',
+            '0 0 0 1 1 ? 2099',
+            new JobApplicationSchedulerV2()
+        );
+        Test.stopTest();
+
+        List<CronTrigger> ct = [
+            SELECT Id, State
+            FROM CronTrigger
+            WHERE CronJobDetail.Name = 'Test Scheduler Job'
+        ];
+
+        System.assertEquals(1, ct.size());
+        System.assertEquals('WAITING', ct[0].State);
+    }
+}
+```
+## Key Learnings
+
+- Salesforce allows only one active scheduled job per schedulable class
+- Duplicate scheduling must be handled by deleting existing jobs or changing job names
+- Scheduler tests validate job registration, not execution timing
+- Scheduler + Batch is a standard production automation pattern
