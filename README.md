@@ -1857,3 +1857,97 @@ public class JobApplicationSchedulerTestV2 {
 - Duplicate scheduling must be handled by deleting existing jobs or changing job names
 - Scheduler tests validate job registration, not execution timing
 - Scheduler + Batch is a standard production automation pattern
+---
+# Day 40 Batch Apex with Validation-Safe Updates (End-to-End)
+
+### Objective
+Implement a Batch Apex job that updates `Job_Application__c` records from **Applied → Interviewing** while respecting org-level validation rules, and ensure the test class passes reliably.
+
+---
+
+## Batch Apex Class
+
+```apex
+public class JobApplicationErrorHandlingBatch
+    implements Database.Batchable<SObject> {
+
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator(
+            'SELECT Id, Status__c, Interview_Date__c, Position__c ' +
+            'FROM Job_Application__c ' +
+            'WHERE Status__c = \'Applied\''
+        );
+    }
+
+    public void execute(Database.BatchableContext bc, List<Job_Application__c> scope) {
+
+        List<Job_Application__c> toUpdate = new List<Job_Application__c>();
+
+        for (Job_Application__c app : scope) {
+            try {
+                app.Status__c = 'Interviewing';
+
+                // Populate required fields to satisfy validation rules
+                if (app.Interview_Date__c == null) {
+                    app.Interview_Date__c = Date.today().addDays(1);
+                }
+                if (app.Position__c == null) {
+                    app.Position__c = 'Developer';
+                }
+
+                toUpdate.add(app);
+
+            } catch (Exception e) {
+                System.debug('Skipped record due to error: ' + e.getMessage());
+            }
+        }
+
+        if (!toUpdate.isEmpty()) {
+            update toUpdate;
+        }
+    }
+
+    public void finish(Database.BatchableContext bc) {
+        System.debug('Batch execution completed');
+    }
+}
+```
+## Test Class
+```apex
+@isTest
+public class JobApplicationErrorHandlingBatchTest {
+
+    @isTest
+    static void testBatchUpdatesStatus() {
+
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Batch Test Application',
+            Status__c = 'Applied',
+            Interview_Date__c = Date.today().addDays(2),
+            Position__c = 'Developer'
+        );
+        insert app;
+
+        Test.startTest();
+        Database.executeBatch(new JobApplicationErrorHandlingBatch(), 1);
+        Test.stopTest();
+
+        Job_Application__c updatedApp = [
+            SELECT Status__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(
+            'Interviewing',
+            updatedApp.Status__c,
+            'Application status should be updated to Interviewing'
+        );
+    }
+}
+```
+## Key Learnings
+- Batch Apex must always respect validation rules
+- Test failures often come from missing required data, not logic errors
+- Always align batch logic with real business constraints
+- Small batch size ensures predictable test execution
