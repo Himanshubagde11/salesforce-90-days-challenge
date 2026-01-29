@@ -1,4 +1,4 @@
-# salesforce-90-days-challenge
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9ed8cd93-9c12-48ae-9c49-8a69b92d87df" /># salesforce-90-days-challenge
 Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrations, and projects.
 ### Day 1
 - Created a Salesforce Lightning App: My Recruitment App
@@ -1951,3 +1951,84 @@ public class JobApplicationErrorHandlingBatchTest {
 - Test failures often come from missing required data, not logic errors
 - Always align batch logic with real business constraints
 - Small batch size ensures predictable test execution
+---
+# Day 41 – Salesforce Platform Events
+
+## Overview
+Implemented an end-to-end Platform Event–driven workflow to handle Job Application status transitions asynchronously. The focus was on decoupled architecture, reliable event publishing, and safe subscriber-side processing under validation rules.
+
+---
+
+## Components Implemented
+
+### 1. Platform Event
+**Object:** Job_Application_Event__e  
+**Fields:**
+- Job_Application_Id__c (Text)
+- Event_Type__c (Text)
+
+---
+
+## 2. Event Publisher (Apex)
+
+```apex
+public class JobApplicationEventPublisher {
+
+    public static void publishEvent(Id jobAppId, String eventType) {
+
+        Job_Application_Event__e eventRecord =
+            new Job_Application_Event__e(
+                Job_Application_Id__c = jobAppId,
+                Event_Type__c = eventType
+            );
+
+        Database.SaveResult result = EventBus.publish(eventRecord);
+
+        if (!result.isSuccess()) {
+            for (Database.Error err : result.getErrors()) {
+                System.debug('Event Publish Error: ' + err.getMessage());
+            }
+        }
+    }
+}
+```
+
+## 3. Event Subscriber (Trigger)
+```apex
+trigger JobApplicationEventTrigger
+    on Job_Application_Event__e (after insert) {
+
+    List<Job_Application__c> applicationsToUpdate = new List<Job_Application__c>();
+
+    for (Job_Application_Event__e evt : Trigger.new) {
+
+        if (evt.Event_Type__c == 'MOVE_TO_INTERVIEW') {
+
+            Job_Application__c app = new Job_Application__c(
+                Id = evt.Job_Application_Id__c,
+                Status__c = 'Interviewing',
+                Interview_Date__c = Date.today()
+            );
+
+            applicationsToUpdate.add(app);
+        }
+    }
+
+    if (!applicationsToUpdate.isEmpty()) {
+        update applicationsToUpdate;
+    }
+}
+```
+## Execution Flow
+
+1. Job Application record change triggers event publishing
+2. Platform Event is published using EventBus
+3. Subscriber trigger consumes event asynchronously
+4. Job Application status is updated safely with required fields
+5. Execution verified via Apex Debug Logs
+
+## Key Learnings
+- Platform Events execute in independent async transactions
+- Debug logs appear in separate executions
+- Validation rules must be handled inside subscribers
+- Event-driven design improves scalability and decoupling
