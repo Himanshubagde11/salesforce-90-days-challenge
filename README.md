@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9ed8cd93-9c12-48ae-9c49-8a69b92d87df" /># salesforce-90-days-challenge
+# salesforce-90-days-challenge
 Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrations, and projects.
 ### Day 1
 - Created a Salesforce Lightning App: My Recruitment App
