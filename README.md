@@ -1,4 +1,4 @@
-# salesforce-90-days-challenge
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/04b4e98f-dc8a-42c9-8416-bc0f0996ab7e" /># salesforce-90-days-challenge
 Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrations, and projects.
 ### Day 1
 - Created a Salesforce Lightning App: My Recruitment App
@@ -2032,3 +2032,67 @@ trigger JobApplicationEventTrigger
 - Debug logs appear in separate executions
 - Validation rules must be handled inside subscribers
 - Event-driven design improves scalability and decoupling
+---
+# Day 42 Change Data Capture (CDC) Trigger Implementation
+
+## Objective
+Implement and verify a Change Data Capture (CDC) trigger on the `Job_Application__c` object to track data changes and process them asynchronously using Salesforce Change Events.
+
+---
+
+## What Was Implemented
+
+### 1. Enabled Change Data Capture
+- Enabled CDC for `Job_Application__c` from **Setup → Change Data Capture**
+- Verified that Salesforce auto-generated `Job_Application__ChangeEvent`
+
+---
+
+### 2. CDC Trigger Creation
+Created an Apex trigger on `Job_Application__ChangeEvent` to capture and log change metadata.
+
+```apex
+trigger JobApplicationCDCTrigger
+on Job_Application__ChangeEvent (after insert) {
+
+    for (Job_Application__ChangeEvent evt : Trigger.new) {
+
+        System.debug('CDC Event Fired');
+
+        System.debug('Change Type: ' +
+            evt.ChangeEventHeader.getChangeType()
+        );
+
+        System.debug('Record Ids: ' +
+            evt.ChangeEventHeader.getRecordIds()
+        );
+
+        System.debug('Changed Fields: ' +
+            evt.ChangeEventHeader.getChangedFields()
+        );
+    }
+}
+```
+### 3. Common Issues Resolved
+- Corrected invalid references like evt.RecordIds
+- Used ChangeEventHeader methods instead of direct field access
+- Understood CDC execution context (CDC does not fire from Execute Anonymous)
+
+### 4. Verification Process
+- Updated a Job_Application__c record via UI
+- Confirmed CDC trigger execution using Debug Logs
+- Verified:
+  - Change Type
+  - Record Ids
+  - Changed Fields
+  - Successful execution without errors
+### Key Learnings
+- CDC triggers only fire on actual DML operations (insert/update/delete)
+- Platform Events and CDC are separate mechanisms
+- ChangeEventHeader must be accessed using getter methods
+- Debug logs are the correct way to validate CDC execution
+
+### Status
+- CDC Trigger successfully implemented
+- Verified through debug logs
+- Ready for downstream processing and integrations
