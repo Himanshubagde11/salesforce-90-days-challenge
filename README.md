@@ -1,4 +1,4 @@
-salesforce-90-days-challenge
+# salesforce-90-days-challenge
 Tracking my hands-on Salesforce development journey: Apex, LWC, Flows, Integrations, and projects.
 ### Day 1
 - Created a Salesforce Lightning App: My Recruitment App
