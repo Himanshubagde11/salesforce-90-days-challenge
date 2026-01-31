@@ -2096,3 +2096,97 @@ on Job_Application__ChangeEvent (after insert) {
 - CDC Trigger successfully implemented
 - Verified through debug logs
 - Ready for downstream processing and integrations
+
+# Day 43 CDC Debugging & End-to-End Verification (With Code)
+
+## Objective
+Implement and verify a complete Change Data Capture (CDC) flow:
+Record Update → CDC Event → CDC Trigger → Queueable → DML
+
+---
+
+## 1. CDC Trigger (after insert)
+
+```apex
+trigger JobApplicationCDCTrigger
+on Job_Application__ChangeEvent (after insert) {
+
+    for (Job_Application__ChangeEvent evt : Trigger.new) {
+
+        // Extract Change Event metadata
+        ChangeEventHeader header = evt.ChangeEventHeader;
+
+        System.debug('CDC Trigger Fired');
+        System.debug('Change Type: ' + header.changeType);
+        System.debug('Record Ids: ' + header.recordIds);
+        System.debug('Changed Fields: ' + header.changedFields);
+
+        // Enqueue async processing
+        System.enqueueJob(
+            new JobApplicationCDCQueueable(
+                header.recordIds,
+                header.changeType
+            )
+        );
+    }
+}
+```
+## 2. Queueable Class (Async Processing)
+```apex
+public class JobApplicationCDCQueueable implements Queueable {
+
+    private Set<Id> recordIds;
+    private String changeType;
+
+    public JobApplicationCDCQueueable(Set<Id> recordIds, String changeType) {
+        this.recordIds = recordIds;
+        this.changeType = changeType;
+    }
+
+    public void execute(QueueableContext context) {
+
+        System.debug('Queueable Started');
+        System.debug('Change Type: ' + changeType);
+        System.debug('Record Ids: ' + recordIds);
+
+        if (changeType == 'UPDATE') {
+
+            List<Job_Application__c> apps = [
+                SELECT Id, Status__c
+                FROM Job_Application__c
+                WHERE Id IN :recordIds
+            ];
+
+            for (Job_Application__c app : apps) {
+                app.Status__c = 'Interviewing';
+            }
+
+            update apps;
+        }
+    }
+}
+```
+## 3. Debug Configuration (Critical Step)
+
+- Created Custom Debug Level
+- Apex Code: DEBUG
+- System: DEBUG
+- Database: INFO
+- Added User Trace Flag with short expiration
+- Verified logs under Setup → Debug Logs
+
+## 4. Verification Steps
+
+- Updated Job_Application__c.Status__c via UI
+- Confirmed in logs:
+- CDC Trigger fired
+- ChangeEventHeader populated
+- Queueable enqueued
+- DML executed successfully
+
+## Key Learnings
+
+- CDC events do NOT fire from anonymous Apex
+- Always use ChangeEventHeader
+- Async processing is mandatory for scalable CDC logic
+- Proper debug levels save hours of confusion
