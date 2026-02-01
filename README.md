@@ -2190,3 +2190,64 @@ public class JobApplicationCDCQueueable implements Queueable {
 - Always use ChangeEventHeader
 - Async processing is mandatory for scalable CDC logic
 - Proper debug levels save hours of confusion
+---
+# Day 44 Salesforce Named Credential & External Credential Setup (Step 1)
+
+## Objective
+Configure Salesforce security correctly using **External Credentials**, **Principals**, and **Permission Sets** to enable secure API callouts without hardcoding secrets.
+
+---
+
+## What I Implemented
+
+### 1. External Credential
+- Created `Dummy_API_External`
+- Authentication handled via Salesforce-managed security
+- Principal configured: `DefaultPrincipal`
+
+### 2. Principal Access via Permission Set
+- Created permission set: `Dummy_API_Access`
+- Granted **External Credential Principal Access**:
+*Dummy_API_External → DefaultPrincipa*
+- Assigned permission set to user to authorize usage
+
+### 3. Named Credential
+- Created Named Credential linked to:
+*External Credential: Dummy_API_External
+Principal: DefaultPrincipal*
+- Enabled automatic authorization header generation
+
+---
+
+## Why This Matters
+- Eliminates hardcoded API keys and tokens
+- Aligns with Salesforce’s modern zero-trust security model
+- Required foundation for secure Apex HTTP callouts
+
+---
+
+## Sample Apex Callout (Verification)
+
+```apex
+HttpRequest req = new HttpRequest();
+req.setEndpoint('callout:Dummy_API_Named_Credential/test');
+req.setMethod('GET');
+
+Http http = new Http();
+HttpResponse res = http.send(req);
+
+System.debug('Status Code: ' + res.getStatusCode());
+System.debug('Response Body: ' + res.getBody());
+```
+## Key Takeaway
+
+Named Credentials do not work alone.
+They require:
+
+- External Credential
+- Principal
+- Permission Set with Principal Access
+- User assignment
+
+Miss one step and the callout fails.
+---
