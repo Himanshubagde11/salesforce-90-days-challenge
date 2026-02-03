@@ -2337,3 +2337,74 @@ System.debug('Response Body: ' + res.getBody());
 - Named Credential callout executed without auth errors
 - Governor limits respected
 - No pending compile or runtime issues
+---
+## Day 46 LWC Setup & First Deployment (VS Code → Salesforce Org)
+
+### What I built
+- Set up Salesforce DX project in VS Code
+- Installed and configured Salesforce CLI
+- Authorized Salesforce Org using SFDX
+- Created a Lightning Web Component
+- Deployed LWC from VS Code to Salesforce Org
+- Activated component using Lightning App Builder
+- Verified UI rendering in Lightning Experience
+
+---
+
+### Lightning Web Component: jobApplicationCard
+
+#### jobApplicationCard.html
+```html
+<template>
+    <lightning-card title="Job Application Card">
+        <div class="slds-p-around_medium">
+            <p>Hello from LWC visible</p>
+        </div>
+    </lightning-card>
+</template>
+```
+#### jobApplicationCard.js
+```js
+import { LightningElement } from 'lwc';
+
+export default class JobApplicationCard extends LightningElement {
+}
+```
+#### jobApplicationCard.js-meta.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>59.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightning__RecordPage</target>
+    </targets>
+</LightningComponentBundle>
+```
+#### Deployment Command (VS Code → Org)
+`sfdx force:source:deploy -p force-app`
+
+### Verification Steps
+1. Open Salesforce Org
+2. Go to Setup → Lightning App Builder
+3. Create a new App Page
+4. Drag jobApplicationCard onto the canvas
+5. Save → Activate → Open App
+6. Confirm message is visible:
+   `Hello from LWC Visible`
+### Why this matters
+
+This validates the complete Salesforce developer workflow:
+local development → deployment → activation → UI verification.
+
+This is the foundation for building production-grade Lightning Web Components.
+
+### Tech Stack
+
+- Salesforce DX
+- Lightning Web Components (LWC)
+- VS Code + Salesforce Extensions
+- Node.js
+---
