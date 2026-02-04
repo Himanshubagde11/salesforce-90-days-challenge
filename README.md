@@ -2408,3 +2408,87 @@ This is the foundation for building production-grade Lightning Web Components.
 - VS Code + Salesforce Extensions
 - Node.js
 ---
+# Day 47 LWC + Apex Integration (First Data Wire)
+
+## Overview
+On Day 47, I successfully completed my first end-to-end integration between a Lightning Web Component (LWC) and an Apex controller using VS Code and Salesforce DX.
+
+This milestone covers setting up the local development environment, wiring Apex methods to LWC using `@wire`, deploying metadata to the org, and rendering the component on a Lightning App Page.
+
+---
+
+## What I Built
+- A Lightning Web Component: `jobApplicationCard`
+- An Apex controller: `JobApplicationController`
+- Wired Apex method to LWC using `@wire`
+- Deployed the component from VS Code to Salesforce org
+- Activated and rendered the component in Lightning App Builder
+
+---
+
+## Key Concepts Practiced
+- Salesforce DX project setup
+- Org authorization from VS Code
+- LWC folder structure and metadata
+- Apex to LWC communication
+- `@salesforce/apex` imports
+- Lightning App Builder activation
+
+---
+
+## Apex Controller
+```apex
+public with sharing class JobApplicationController {
+    @AuraEnabled(cacheable=true)
+    public static List<Job_Application__c> getJobApplications() {
+        return [
+            SELECT Id, Name, Status__c
+            FROM Job_Application__c
+            LIMIT 10
+        ];
+    }
+}
+```
+## LWC JavaScript
+```javascript
+import { LightningElement, wire } from 'lwc';
+import getJobApplications from '@salesforce/apex/JobApplicationController.getJobApplications';
+
+export default class JobApplicationCard extends LightningElement {
+    applications;
+
+    @wire(getJobApplications)
+    wiredApplications({ data, error }) {
+        if (data) {
+            this.applications = data;
+        } else if (error) {
+            console.error(error);
+        }
+    }
+}
+```
+## LWC HTML
+```html
+<template>
+    <lightning-card title="Job Applications">
+        <template if:true={applications}>
+            <template for:each={applications} for:item="app">
+                <p key={app.Id} class="slds-p-horizontal_small">
+                    {app.Name} — {app.Status__c}
+                </p>
+            </template>
+        </template>
+
+        <template if:false={applications}>
+            <p class="slds-p-horizontal_small">
+                Loading applications...
+            </p>
+        </template>
+    </lightning-card>
+</template>
+```
+## Result
+
+- Deployment succeeded from VS Code
+- Component is visible in Lightning App Builder
+- LWC renders successfully inside a custom Lightning App
