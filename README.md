@@ -2492,3 +2492,160 @@ export default class JobApplicationCard extends LightningElement {
 - Deployment succeeded from VS Code
 - Component is visible in Lightning App Builder
 - LWC renders successfully inside a custom Lightning App
+---
+# Day 48 Interactive LWC with Modal Popup (Apex → UI)
+
+## Overview
+On Day 48, I enhanced my Lightning Web Component to support real user interaction by introducing a modal popup that displays detailed Job Application information. The component fetches data from Apex, renders a list of records, and opens a popup with full details when a user selects a record.
+
+This day focused on **frontend state management, event handling, and conditional rendering in LWC**.
+
+---
+
+## Features Implemented
+- Loaded Job Application records dynamically from Apex
+- Displayed records in a list with action buttons
+- Handled user click events using `data-id`
+- Opened a modal popup on selection
+- Displayed detailed record information:
+  - Application Name
+  - Status
+  - Interview Date (if available)
+  - Applied Date
+- Conditional rendering for optional fields
+- Clean modal open/close state handling
+
+---
+
+## Apex Controller
+
+```apex
+public with sharing class JobApplicationController {
+
+    @AuraEnabled(cacheable=true)
+    public static List<Job_Application__c> getJobApplications() {
+        return [
+            SELECT
+                Id,
+                Name,
+                Status__c,
+                Interview_Date__c,
+                CreatedDate
+            FROM Job_Application__c
+            ORDER BY CreatedDate DESC
+        ];
+    }
+}
+```
+## Lightning Web Component
+`jobApplicationCard.js`
+```js
+import { LightningElement, wire } from 'lwc';
+import getJobApplications from '@salesforce/apex/JobApplicationController.getJobApplications';
+
+export default class JobApplicationCard extends LightningElement {
+    applications = [];
+    selectedApplication = null;
+    isModalOpen = false;
+
+    @wire(getJobApplications)
+    wiredApplications({ data, error }) {
+        if (data) {
+            this.applications = data;
+        } else if (error) {
+            console.error(error);
+        }
+    }
+
+    handleSelect(event) {
+        const appId = event.currentTarget.dataset.id;
+
+        this.selectedApplication = this.applications.find(
+            app => app.Id === appId
+        );
+
+        this.isModalOpen = true;
+    }
+
+    closeModal() {
+        this.isModalOpen = false;
+        this.selectedApplication = null;
+    }
+}
+```
+## jobApplicationCard.html
+```apex
+<template>
+    <lightning-card title="Job Applications">
+        <template for:each={applications} for:item="app">
+            <div key={app.Id} class="slds-box slds-m-bottom_small">
+                <p>
+                    <strong>{app.Name}</strong> — {app.Status__c}
+                </p>
+
+                <lightning-button
+                    label="Select"
+                    variant="brand"
+                    data-id={app.Id}
+                    onclick={handleSelect}>
+                </lightning-button>
+            </div>
+        </template>
+    </lightning-card>
+
+    <!-- Modal Popup -->
+    <template if:true={isModalOpen}>
+        <section role="dialog" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">
+                        Job Application Details
+                    </h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p><strong>Name:</strong> {selectedApplication.Name}</p>
+                    <p><strong>Status:</strong> {selectedApplication.Status__c}</p>
+
+                    <template if:true={selectedApplication.Interview_Date__c}>
+                        <p>
+                            <strong>Interview Date:</strong>
+                            {selectedApplication.Interview_Date__c}
+                        </p>
+                    </template>
+
+                    <p>
+                        <strong>Applied On:</strong>
+                        {selectedApplication.CreatedDate}
+                    </p>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning-button
+                        label="Close"
+                        onclick={closeModal}>
+                    </lightning-button>
+                </footer>
+
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
+```
+## Result
+
+- Records load dynamically from Apex
+- User interaction triggers a modal popup
+- Popup displays full application details
+- UI updates without page refresh
+
+## Key Learnings
+
+- Event handling in LWC (onclick, data-*)
+- State management for UI behavior
+- Conditional rendering using if:true
+- Building SLDS-compliant modal dialogs
+- Clean separation of data logic (Apex) and UI logic (LWC)
