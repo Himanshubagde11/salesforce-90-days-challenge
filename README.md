@@ -2649,3 +2649,198 @@ export default class JobApplicationCard extends LightningElement {
 - Conditional rendering using if:true
 - Building SLDS-compliant modal dialogs
 - Clean separation of data logic (Apex) and UI logic (LWC)
+---
+# Day 49 Fixing Picklist Errors & Legacy Record Consistency (LWC + Apex)
+
+## Objective
+Fix an issue where updating the **Status** field from an LWC modal worked for **new records** but failed for **older records**, without changing the existing UI.
+
+---
+
+## Real-World Problem Faced
+When updating Job Application records from an LWC modal:
+- New records updated successfully
+- Old records threw errors on Save
+
+Root cause was **not LWC or Apex logic**, but **legacy picklist data inconsistency**.
+
+---
+
+## 🔍 Root Cause Analysis
+- Status__c is a **restricted picklist**
+- Older records contained values that were:
+  - Removed
+  - Renamed
+  - Inactive
+- Salesforce blocks updates when invalid picklist values exist
+
+Metadata changes do **not** auto-fix existing data.
+
+---
+
+## Solution Implemented
+- Normalized legacy Job Application records
+- Ensured all records use **currently active picklist values**
+- No UI changes
+- No Apex hacks
+- No validation bypass
+
+Result: **All records (old + new) update cleanly**
+
+---
+
+## Apex Controller
+
+```apex
+public with sharing class JobApplicationController {
+
+    @AuraEnabled(cacheable=true)
+    public static List<Job_Application__c> getJobApplications() {
+        return [
+            SELECT Id, Name, Status__c
+            FROM Job_Application__c
+            ORDER BY CreatedDate DESC
+        ];
+    }
+
+    @AuraEnabled
+    public static Job_Application__c getJobApplicationDetails(Id recordId) {
+        return [
+            SELECT Id, Name, Position__c, Status__c,
+                   Company__r.Name,
+                   CreatedDate,
+                   Interview_Date__c
+            FROM Job_Application__c
+            WHERE Id = :recordId
+            LIMIT 1
+        ];
+    }
+
+    @AuraEnabled
+    public static void updateJobApplication(Job_Application__c application) {
+        update application;
+    }
+}
+```
+## LWC JavaScript
+```JS
+import { LightningElement, track } from 'lwc';
+import getJobApplications from '@salesforce/apex/JobApplicationController.getJobApplications';
+import getJobApplicationDetails from '@salesforce/apex/JobApplicationController.getJobApplicationDetails';
+import updateJobApplication from '@salesforce/apex/JobApplicationController.updateJobApplication';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
+export default class JobApplicationCard extends LightningElement {
+
+    @track applications = [];
+    @track selectedApplication;
+    @track showModal = false;
+
+    connectedCallback() {
+        this.loadApplications();
+    }
+
+    loadApplications() {
+        getJobApplications()
+            .then(result => {
+                this.applications = result;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    handleSelect(event) {
+        const recordId = event.target.dataset.id;
+
+        getJobApplicationDetails({ recordId })
+            .then(result => {
+                this.selectedApplication = { ...result };
+                this.showModal = true;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    handleStatusChange(event) {
+        this.selectedApplication.Status__c = event.detail.value;
+    }
+
+    handleSave() {
+        updateJobApplication({ application: this.selectedApplication })
+            .then(() => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Status updated successfully',
+                        variant: 'success'
+                    })
+                );
+                this.showModal = false;
+                this.loadApplications();
+            })
+            .catch(error => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error',
+                        message: error.body.message,
+                        variant: 'error'
+                    })
+                );
+            });
+    }
+
+    handleClose() {
+        this.showModal = false;
+    }
+}
+```
+## LWC HTML
+```HTML
+<template>
+    <template if:true={showModal}>
+        <section class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">Candidate Details</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p><b>Name:</b> {selectedApplication.Name}</p>
+                    <p><b>Position:</b> {selectedApplication.Position__c}</p>
+                    <p><b>Company:</b> {selectedApplication.Company__r.Name}</p>
+
+                    <lightning-combobox
+                        label="Status"
+                        value={selectedApplication.Status__c}
+                        options={statusOptions}
+                        onchange={handleStatusChange}>
+                    </lightning-combobox>
+
+                    <p><b>Applied Date:</b> {selectedApplication.CreatedDate}</p>
+                    <p><b>Interview Date:</b> {selectedApplication.Interview_Date__c}</p>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Close" onclick={handleClose}></lightning-button>
+                    <lightning-button variant="brand" label="Save" onclick={handleSave}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
+```
+## Key Learnings
+
+- Restricted picklists can break updates for legacy records
+- Metadata changes ≠ data fixes
+- Always validate existing data, not just code
+- Do not change UI when the issue is data integrity
+
+ ## Outcome
+
+✔ All Job Application records update successfully
+✔ No UI changes required
+✔ Production-safe fix applied
