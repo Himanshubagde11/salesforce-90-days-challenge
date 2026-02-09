@@ -2844,3 +2844,76 @@ export default class JobApplicationCard extends LightningElement {
 ✔ All Job Application records update successfully
 ✔ No UI changes required
 ✔ Production-safe fix applied
+---
+# Day 50  State Management & UX Safety in LWC
+
+## Objective
+Enhance the existing Lightning Web Component by adding proper state management
+and UX safeguards, without changing the UI layout.
+
+The focus was on preventing invalid user actions and ensuring predictable,
+production-ready behavior.
+
+---
+
+## Problem Statement
+The Save button in the modal was:
+- Disabled initially (expected)
+- Remaining disabled even after changing the Status value (unexpected)
+
+This indicated an issue in client-side state handling rather than UI or Apex logic.
+
+---
+
+## Root Cause
+- The original Status value and the user-selected Status were not tracked separately
+- Save button enablement logic depended on incorrect state comparison
+- LWC template expressions do not support inline logical or unary operations
+
+---
+
+## Solution Implemented
+
+### 1. State Tracking
+- Stored the original Status when the modal opened
+- Tracked the currently selected Status separately
+
+### 2. Getter-Based UI Control
+- Implemented a JavaScript getter to determine whether the Save button should be enabled
+- Ensured all logic lives in JavaScript, not in the HTML template
+
+### 3. UX Safeguards
+- Save button enabled only when the Status value changes
+- Prevented unnecessary Apex calls
+- Reset component state when the modal is closed
+
+---
+
+## Key JavaScript Logic
+
+```js
+handleSelect(event) {
+    this.originalStatus = result.Status__c;
+    this.selectedStatus = result.Status__c;
+}
+
+handleStatusChange(event) {
+    this.selectedStatus = event.detail.value;
+}
+
+get isSaveDisabled() {
+    return this.selectedStatus === this.originalStatus;
+}
+```
+## Key Learnings
+
+- LWC templates do not allow logical or unary expressions
+- UI behavior must be controlled through JavaScript getters
+- Proper state comparison is essential for predictable UX
+- Preventing unnecessary updates is part of production-quality development
+
+## Outcome
+
+- Save button behaves correctly based on user interaction
+- No UI redesign required
+- Component now follows enterprise LWC best practices
