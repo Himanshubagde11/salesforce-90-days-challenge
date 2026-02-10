@@ -2917,3 +2917,76 @@ get isSaveDisabled() {
 - Save button behaves correctly based on user interaction
 - No UI redesign required
 - Component now follows enterprise LWC best practices
+---
+
+# Day 51 Controlled Updates, UX Safety & Defensive Programming (LWC + Apex)
+
+## Objective
+Implement a safe, production-ready update mechanism for Job Application status
+by ensuring that records are updated **only when a real change occurs**.
+
+The goal was not to add new UI features, but to enforce **intelligent data updates**
+with proper user feedback and backend validation.
+
+---
+
+## Core Problem
+Users could click Save even when no meaningful change was made.
+This resulted in:
+- Unnecessary Apex DML calls
+- Confusing user experience
+- Risk of duplicate updates
+
+---
+
+## Solution Overview
+
+### 1. Client-Side Change Detection (LWC)
+- Stored the original Status value when the modal opened
+- Tracked the user-selected Status separately
+- Enabled Save only when the two values differed
+
+```js
+get isSaveDisabled() {
+    return !this.selectedStatus || this.selectedStatus === this.originalStatus;
+}
+```
+This ensures the UI allows saving only when a real change occurs.
+
+### 2. Server-Side Validation Guard (Apex)
+
+- Apex does not trust the UI blindly
+- Before performing DML, the existing value is compared with the incoming value
+- If no change is detected, the update is blocked
+```apex
+if (app.Status__c == status) {
+    throw new AuraHandledException('No changes detected. Update skipped.');
+}
+```
+This prevents unnecessary DML and protects data integrity.
+
+### 3. User Feedback & UI Synchronization
+
+- Success and error toast messages inform the user of outcomes
+- The Job Application list refreshes automatically after update
+- Modal state is reset cleanly after save
+```js
+.then(() => {
+    this.showToast('Success', 'Status updated successfully', 'success');
+    this.showModal = false;
+    return refreshApex(this.wiredResult);
+})
+```
+## Key Learnings
+
+- UI logic must be driven by state comparison, not button clicks
+- Backend logic must always validate incoming updates
+- Preventing unnecessary DML is a core Salesforce best practice
+- Defensive programming improves both performance and reliability
+
+## Outcome
+
+- Save is enabled only when a real change is made
+- Duplicate and no-op updates are blocked at both UI and backend levels
+- Users receive clear feedback for success and failure
+- Component behavior aligns with real-world Salesforce production standards
