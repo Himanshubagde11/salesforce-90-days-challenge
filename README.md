@@ -2990,3 +2990,107 @@ This prevents unnecessary DML and protects data integrity.
 - Duplicate and no-op updates are blocked at both UI and backend levels
 - Users receive clear feedback for success and failure
 - Component behavior aligns with real-world Salesforce production standards
+---
+# Day 52 Status Transition Rules (Business Logic Enforcement)
+
+## Objective
+Implement controlled workflow transitions for Job Application records.
+The system must prevent invalid status jumps and enforce structured hiring stages.
+
+This ensures:
+- Data integrity
+- Process consistency
+- Enterprise-grade backend validation
+
+---
+
+## Problem
+
+Without transition control:
+- Users can jump from Applied → Offered
+- Users can move from Rejected → Interviewing
+- Hiring workflow becomes inconsistent
+- Backend allows invalid business logic
+
+A production system must enforce process rules at the server level.
+
+---
+
+## Solution
+
+Transition rules were implemented inside Apex.
+
+Allowed transitions:
+
+Applied → Interviewing  
+Interviewing → Offered  
+Interviewing → Rejected  
+
+All other transitions are blocked.
+
+---
+
+## Apex Implementation
+
+```apex
+@AuraEnabled
+public static void updateJobApplicationStatus(Id recordId, String status) {
+
+    Job_Application__c app = [
+        SELECT Id, Status__c
+        FROM Job_Application__c
+        WHERE Id = :recordId
+        LIMIT 1
+    ];
+
+    String currentStatus = app.Status__c;
+
+    if (currentStatus == status) {
+        throw new AuraHandledException(
+            'No changes detected.'
+        );
+    }
+
+    Boolean isValid = false;
+
+    if (currentStatus == 'Applied' && status == 'Interviewing') {
+        isValid = true;
+    }
+    else if (currentStatus == 'Interviewing' &&
+            (status == 'Offered' || status == 'Rejected')) {
+        isValid = true;
+    }
+
+    if (!isValid) {
+        throw new AuraHandledException(
+            'Invalid transition from ' + currentStatus + ' to ' + status
+        );
+    }
+
+    app.Status__c = status;
+    update app;
+}
+```
+## Frontend Behavior
+No UI redesign required.
+LWC:
+
+- Enables Save only when a change is detected
+- Displays backend validation errors via toast
+- Refreshes list after successful update
+The backend remains the final authority.
+
+## Key Concepts Learned
+
+- Business rule enforcement in Apex
+- Defensive backend programming
+- Controlled workflow transitions
+- Separation of UI validation and server validation
+- Preventing invalid DML operations
+
+## Outcome
+
+The Job Application workflow now follows a strict hiring process.
+Invalid status transitions are blocked at the server level.
+The system behaves like a real enterprise Salesforce implementation.
+---
