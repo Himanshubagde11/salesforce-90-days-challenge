@@ -3094,3 +3094,124 @@ The Job Application workflow now follows a strict hiring process.
 Invalid status transitions are blocked at the server level.
 The system behaves like a real enterprise Salesforce implementation.
 ---
+# Day 53 Metadata-Driven Status Transition Engine
+
+## Objective
+Enhance the Job Application module by implementing a scalable, metadata-driven validation mechanism for status transitions, following enterprise-level architectural practices.
+
+The focus was to eliminate hardcoded logic and introduce a configurable business rules framework.
+
+---
+
+## Key Enhancements
+
+### 1. Custom Metadata for Business Rules
+
+Created a Custom Metadata Type:
+
+Status_Transition_Rule__mdt
+
+Fields:
+- From_Status__c (Text)
+- To_Status__c (Text)
+
+Sample Records:
+- Applied → Interviewing  
+- Interviewing → Offered  
+- Interviewing → Rejected  
+
+This allows administrators to control valid status transitions without modifying Apex code.
+
+---
+
+### 2. Service Layer Implementation
+
+Created a dedicated service class to centralize validation logic.
+
+**StatusTransitionService.cls**
+```apex
+public with sharing class StatusTransitionService {
+public static void validateTransition(String fromStatus, String toStatus) {
+
+    List<Status_Transition_Rule__mdt> rules = [
+        SELECT From_Status__c, To_Status__c
+        FROM Status_Transition_Rule__mdt
+        WHERE From_Status__c = :fromStatus
+        AND To_Status__c = :toStatus
+    ];
+
+    if (rules.isEmpty()) {
+        throw new AuraHandledException(
+            'Invalid Status Transition: ' + fromStatus + ' → ' + toStatus
+          );
+        }
+    }
+}
+```
+
+Responsibilities:
+- Validate status transitions
+- Enforce metadata-defined rules
+- Throw controlled exceptions for invalid transitions
+
+---
+
+### 3. Controller Refactoring
+
+Updated the controller to delegate validation to the service layer.
+
+**JobApplicationController.cls**
+```apex
+@AuraEnabled
+public static void updateJobApplicationStatus(Id recordId, String status) {
+    Job_Application__c app = [
+    SELECT Id, Status__c
+    FROM Job_Application__c
+    WHERE Id = :recordId
+    LIMIT 1
+];
+
+if (app.Status__c == status) {
+    throw new AuraHandledException('No changes detected. Update skipped.');
+}
+
+StatusTransitionService.validateTransition(
+    app.Status__c,
+    status
+);
+
+app.Status__c = status;
+update app;
+}
+```
+
+Improvements:
+- Prevents redundant updates
+- Enforces validation before DML
+- Follows separation of concerns
+
+---
+
+## Architectural Structure
+
+LWC (Presentation Layer)  
+→ Apex Controller (Orchestration Layer)  
+→ Service Layer (Business Logic)  
+→ Custom Metadata (Configurable Rules)
+
+This design promotes:
+- Maintainability
+- Reusability
+- Admin configurability
+- Reduced technical debt
+
+---
+
+## Outcome
+
+The system now:
+- Blocks invalid status transitions
+- Allows administrators to define transition rules
+- Requires no code changes for rule updates
+- Reflects enterprise-grade Salesforce architecture patterns
+---
