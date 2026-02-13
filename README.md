@@ -3215,3 +3215,149 @@ The system now:
 - Requires no code changes for rule updates
 - Reflects enterprise-grade Salesforce architecture patterns
 ---
+# Day 54 Metadata Driven Status Transition + Profile-Based Authorization
+
+## Objective
+
+Implement enterprise-level status transition validation using:
+- Custom Metadata (Status Transition Rules)
+- Apex Service Layer
+- Profile-based authorization
+- LWC → Apex → Service architecture
+
+---
+
+## What We Built
+
+Today we implemented a fully metadata-driven validation system to control 
+Job Application status transitions.
+
+Instead of hardcoding logic in LWC or Apex, we created:
+
+• Custom Metadata Type: `Status_Transition_Rule__mdt`
+• Service Layer: `StatusTransitionService`
+• Controller Layer: `JobApplicationController`
+• Secure server-side validation
+• UI error handling with proper toast messages
+
+---
+
+## Architecture Flow
+
+LWC  
+→ calls Apex Controller  
+→ Controller calls Service Layer  
+→ Service checks Custom Metadata rules  
+→ Validates profile + transition  
+→ Updates record OR throws error  
+
+---
+
+## Apex Service Layer
+
+### StatusTransitionService.cls
+
+```apex
+public with sharing class StatusTransitionService {
+
+    public static void validateTransition(String fromStatus, String toStatus) {
+
+        String currentProfile = [
+            SELECT Profile.Name
+            FROM User
+            WHERE Id = :UserInfo.getUserId()
+        ].Profile.Name;
+
+        List<Status_Transition_Rule__mdt> rules = [
+            SELECT From_Status__c, To_Status__c, Allowed_Profile__c
+            FROM Status_Transition_Rule__mdt
+            WHERE From_Status__c = :fromStatus
+            AND To_Status__c = :toStatus
+        ];
+
+        if (rules.isEmpty()) {
+            throw new AuraHandledException('Invalid status transition.');
+        }
+
+        Boolean authorized = false;
+
+        for (Status_Transition_Rule__mdt rule : rules) {
+            if (rule.Allowed_Profile__c == currentProfile) {
+                authorized = true;
+                break;
+            }
+        }
+
+        if (!authorized) {
+            throw new AuraHandledException(
+                'You are not authorized to perform this transition.'
+            );
+        }
+    }
+}
+```
+
+---
+
+## Controller Layer
+
+### JobApplicationController.cls
+
+```apex
+public with sharing class JobApplicationController {
+
+    @AuraEnabled
+    public static void updateJobApplicationStatus(Id recordId, String status) {
+
+        Job_Application__c app = [
+            SELECT Id, Status__c
+            FROM Job_Application__c
+            WHERE Id = :recordId
+            LIMIT 1
+        ];
+
+        StatusTransitionService.validateTransition(
+            app.Status__c,
+            status
+        );
+
+        app.Status__c = status;
+        update app;
+    }
+}
+```
+
+---
+
+## LWC Enhancements
+
+### Features Implemented
+
+• Candidate full details in modal  
+• Applied Date display  
+• Interview Date display  
+• Status dropdown  
+• Save button validation  
+• Error toast handling  
+• Server-side rule enforcement  
+
+---
+
+## Key Learnings
+
+• Never trust UI validation  
+• Business logic belongs in Apex  
+• Custom Metadata makes rules configurable  
+• Profile-based authorization must be server-side  
+• Clean separation of concerns improves scalability  
+
+---
+
+## Outcome
+
+The system now:
+
+✔ Prevents invalid status transitions  
+✔ Blocks unauthorized profiles  
+✔ Uses configurable rules instead of hardcoding  
+✔ Follows real-world enterprise design principles  
