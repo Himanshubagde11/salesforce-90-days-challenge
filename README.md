@@ -3569,3 +3569,110 @@ The dashboard now:
 
 This moves the project closer to real-world scalable Salesforce UI behavior.
 ---
+# Day 57 Server-Side Pagination (Enterprise Upgrade)
+
+## Objective
+Move pagination logic from client-side (LWC) to server-side (Apex) for improved scalability and performance.
+
+Previously:
+All records were loaded in memory and sliced on the client.
+
+Now:
+Only required records are fetched per page using LIMIT + OFFSET in SOQL.
+
+---
+
+## What Was Implemented
+
+• Server-side pagination using LIMIT and OFFSET  
+• Dynamic filtering (search + status) handled in Apex  
+• Ordered results by CreatedDate DESC  
+• Removed full dataset loading from LWC  
+• Preserved modal edit functionality  
+• Maintained toast + spinner UX  
+
+---
+
+## Apex Paginated Query
+
+```apex
+@AuraEnabled(cacheable=true)
+public static List<Job_Application__c> getPaginatedApplications(
+    Integer pageSize,
+    Integer pageNumber,
+    String searchKey,
+    String statusFilter
+) {
+    Integer offsetValue = (pageNumber - 1) * pageSize;
+
+    String baseQuery = 'SELECT Id, Name, Position__c, Status__c, ' +
+                       'Company__r.Name, CreatedDate, Interview_Date__c ' +
+                       'FROM Job_Application__c';
+
+    List<String> conditions = new List<String>();
+
+    if (!String.isBlank(searchKey)) {
+        conditions.add(
+            '(Name LIKE \'%' + searchKey + '%\' OR Position__c LIKE \'%' + searchKey + '%\')'
+        );
+    }
+
+    if (!String.isBlank(statusFilter) && statusFilter != 'All') {
+        conditions.add('Status__c = \'' + statusFilter + '\'');
+    }
+
+    if (!conditions.isEmpty()) {
+        baseQuery += ' WHERE ' + String.join(conditions, ' AND ');
+    }
+
+    baseQuery += ' ORDER BY CreatedDate DESC';
+    baseQuery += ' LIMIT ' + pageSize;
+    baseQuery += ' OFFSET ' + offsetValue;
+
+    return Database.query(baseQuery);
+}
+```
+
+---
+
+## LWC Server Data Fetch
+
+```javascript
+loadData() {
+    getPaginatedApplications({
+        pageSize: this.pageSize,
+        pageNumber: this.currentPage,
+        searchKey: this.searchKey,
+        statusFilter: this.selectedStatus
+    })
+    .then(result => {
+        this.displayedRecords = result;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+```
+
+---
+
+## Architectural Improvement
+
+Old Flow:
+Apex → All Records → Client Slicing
+
+New Flow:
+LWC → Page Params → Apex Query (LIMIT + OFFSET) → Render
+
+---
+
+## Why This Matters
+
+• Reduced memory usage  
+• Improved scalability  
+• Cleaner separation of concerns  
+• Closer to real-world enterprise implementation  
+• Backend-driven filtering  
+
+This marks the shift from UI-based pagination to production-ready data handling.
+---
