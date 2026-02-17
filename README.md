@@ -3676,3 +3676,190 @@ LWC → Page Params → Apex Query (LIMIT + OFFSET) → Render
 
 This marks the shift from UI-based pagination to production-ready data handling.
 ---
+# Day 58 Advanced Analytics Dashboard + Scalable Pagination + Business Rule Enforcement
+
+## Objective
+
+Integrate dynamic querying, pagination, analytics computation, and backend rule enforcement into a single production-style Salesforce module.
+
+This day focused on architecture stability rather than UI redesign.
+
+---
+
+## 1. Dynamic SOQL with Multi-Filter Support
+
+Implemented conditional query construction for:
+
+- Candidate name search
+- Status filtering
+- Combined conditions
+- SQL injection safety
+
+Example:
+
+String baseQuery =
+    'SELECT Id, Name, Position__c, Status__c, CreatedDate, Interview_Date__c, Company__r.Name ' +
+    'FROM Job_Application__c';
+
+if (!conditions.isEmpty()) {
+    baseQuery += ' WHERE ' + String.join(conditions, ' AND ');
+}
+
+baseQuery +=
+    ' ORDER BY CreatedDate DESC ' +
+    ' LIMIT :pageSize OFFSET :offsetValue';
+
+return Database.query(baseQuery);
+
+Key Concepts:
+- Dynamic SOQL
+- Secure query building
+- ORDER BY + LIMIT + OFFSET
+
+---
+
+## 2. Pagination Architecture
+
+Pagination implemented using:
+
+- pageSize
+- currentPage
+- OFFSET logic
+- Dedicated COUNT() query
+- totalPages calculation
+
+Separate count method:
+
+@AuraEnabled(cacheable=true)
+public static Integer getTotalCount(String searchKey, String statusFilter) {
+    return Database.countQuery(countQuery);
+}
+
+Reason:
+LIMIT does not provide total rows.
+COUNT() is required for accurate pagination.
+
+---
+
+## 3. Dashboard Analytics with Percentages
+
+Backend stats computation:
+
+Integer total = [SELECT COUNT() FROM Job_Application__c];
+
+stats.put('AppliedPercent', (applied * 100) / total);
+stats.put('InterviewingPercent', (interviewing * 100) / total);
+stats.put('OfferedPercent', (offered * 100) / total);
+stats.put('RejectedPercent', (rejected * 100) / total);
+
+Frontend binding:
+
+<div>{stats.AppliedPercent}%</div>
+<div class="bar">
+    <div class="fill" style={appliedWidth}></div>
+</div>
+
+JS Getter:
+
+get appliedWidth() {
+    return `width:${this.stats.AppliedPercent || 0}%`;
+}
+
+---
+
+## 4. Business Rule Enforcement (Forward-Only Status)
+
+Stage progression enforced at Apex layer:
+
+Map<String, Integer> stageOrder = new Map<String, Integer>{
+    'Applied' => 1,
+    'Interviewing' => 2,
+    'Offered' => 3,
+    'Rejected' => 4
+};
+
+if (stageOrder.get(newStatus) <= stageOrder.get(oldStatus)) {
+    throw new AuraHandledException(
+        'You cannot move status backward.'
+    );
+}
+
+Ensures:
+- Data integrity
+- No UI bypass
+- Backend-controlled workflow
+
+---
+
+## 5. History Logging on Status Change
+
+On valid transition:
+
+Job_Application_History__c history =
+    new Job_Application_History__c(
+        Job_Application__c = app.Id,
+        Old_Status__c = oldStatus,
+        New_Status__c = newStatus,
+        Changed_By__c = UserInfo.getUserId(),
+        Changed_On__c = System.now()
+    );
+
+insert history;
+
+Provides audit tracking similar to enterprise systems.
+
+---
+
+## 6. LWC–Apex Integration Flow
+
+connectedCallback() {
+    this.loadAll();
+}
+
+loadAll() {
+    this.loadData();
+    this.loadStats();
+}
+
+After status update:
+
+this.loadAll();
+
+Ensures:
+- UI refresh
+- Analytics refresh
+- Data consistency
+
+---
+
+## Engineering Concepts Strengthened
+
+- Dynamic SOQL construction
+- OFFSET pagination design
+- COUNT() optimization
+- Backend business rule enforcement
+- Percentage analytics computation
+- Apex–LWC data synchronization
+- Audit trail modeling
+
+---
+
+## Architectural Outcome
+
+Day 58 transitioned the project from:
+
+Component-based demo
+
+to
+
+Mini CRM-style system with:
+- Query layer
+- Rule layer
+- Analytics layer
+- Audit layer
+- UI integration layer
+
+System stable.
+Dashboard operational.
+Business rules enforced.
+Pagination scalable.
