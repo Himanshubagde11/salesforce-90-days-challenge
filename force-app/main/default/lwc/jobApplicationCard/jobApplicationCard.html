@@ -1,0 +1,122 @@
+<template>
+
+    <lightning-card title="Job Applications">
+
+        <!-- ===== DASHBOARD ===== -->
+        <div class="dashboard">
+
+            <div class="stat-card total">
+                <div>Total</div>
+                <div class="big">{stats.Total}</div>
+            </div>
+
+            <div class="stat-card applied">
+                <div>Applied</div>
+                <div class="big">{stats.Applied}</div>
+                <div>{stats.AppliedPercent}%</div>
+                <div class="bar">
+                    <div class="fill" style={appliedWidth}></div>
+                </div>
+            </div>
+
+            <div class="stat-card interviewing">
+                <div>Interviewing</div>
+                <div class="big">{stats.Interviewing}</div>
+                <div>{stats.InterviewingPercent}%</div>
+                <div class="bar">
+                    <div class="fill" style={interviewingWidth}></div>
+                </div>
+            </div>
+
+            <div class="stat-card offered">
+                <div>Offered</div>
+                <div class="big">{stats.Offered}</div>
+                <div>{stats.OfferedPercent}%</div>
+                <div class="bar">
+                    <div class="fill" style={offeredWidth}></div>
+                </div>
+            </div>
+
+            <div class="stat-card rejected">
+                <div>Rejected</div>
+                <div class="big">{stats.Rejected}</div>
+                <div>{stats.RejectedPercent}%</div>
+                <div class="bar">
+                    <div class="fill" style={rejectedWidth}></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== FILTERS ===== -->
+        <div class="slds-p-horizontal_medium slds-m-bottom_medium">
+
+            <lightning-input
+                label="Search Candidate"
+                value={searchKey}
+                onchange={handleSearch}>
+            </lightning-input>
+
+            <lightning-combobox
+                class="slds-m-top_small"
+                label="Filter by Status"
+                value={selectedStatus}
+                options={statusOptions}
+                onchange={handleStatusFilter}>
+            </lightning-combobox>
+
+        </div>
+
+        <!-- ===== APPLICATION LIST ===== -->
+        <template for:each={applications} for:item="app">
+
+            <div key={app.Id} class="app-card">
+
+                <div class="left">
+                    <p><strong>Name:</strong> {app.Name}</p>
+                    <p><strong>Position:</strong> {app.Position__c}</p>
+                    <p><strong>Company:</strong> {app.Company__r.Name}</p>
+                </div>
+
+                <div class="right">
+                    <p><strong>Status:</strong> {app.Status__c}</p>
+                    <p>Applied: {app.formattedAppliedDate}</p>
+                    <p>Interview: {app.formattedInterviewDate}</p>
+
+                    <lightning-button
+                        variant="brand"
+                        label="Update Status"
+                        data-id={app.Id}
+                        onclick={openModal}>
+                    </lightning-button>
+
+                </div>
+
+            </div>
+
+        </template>
+
+        <!-- ===== PAGINATION ===== -->
+        <div class="slds-align_absolute-center slds-m-vertical_large">
+
+            <lightning-button
+                label="Previous"
+                onclick={handlePrevious}
+                disabled={disablePrevious}>
+            </lightning-button>
+
+            <span class="slds-m-horizontal_medium">
+                Page {currentPage} of {totalPages}
+            </span>
+
+            <lightning-button
+                label="Next"
+                onclick={handleNext}
+                disabled={disableNext}>
+            </lightning-button>
+
+        </div>
+
+    </lightning-card>
+
+</template>

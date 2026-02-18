@@ -1,0 +1,119 @@
+/* ===== DASHBOARD ===== */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+/* ===== STAT CARDS ===== */
+
+.stat-card {
+    padding: 24px;
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+.stat-card .big {
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* ===== CARD COLORS ===== */
+
+.total {
+    background: linear-gradient(135deg, #0f4c81, #1f78d1);
+}
+
+.applied {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+}
+
+.interviewing {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+}
+
+.offered {
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+}
+
+.rejected {
+    background: linear-gradient(135deg, #cb2d3e, #ef473a);
+}
+
+/* ===== FILTER SECTION ===== */
+
+.filter-section {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px 20px 20px;
+}
+
+lightning-input,
+lightning-combobox {
+    max-width: 250px;
+}
+
+/* ===== APPLICATION CARDS ===== */
+
+.list-section {
+    padding: 0 20px 20px 20px;
+}
+
+.app-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.app-card .left {
+    flex: 1;
+}
+
+.app-card .right {
+    text-align: right;
+}
+
+.app-card p {
+    margin: 4px 0;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media screen and (max-width: 768px) {
+
+    .filter-section {
+        flex-direction: column;
+    }
+
+    .app-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .app-card .right {
+        text-align: left;
+        margin-top: 12px;
+    }
+}
