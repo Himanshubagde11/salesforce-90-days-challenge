@@ -1,122 +1,102 @@
 <template>
 
-    <lightning-card title="Job Applications">
+    <div class="container">
 
-        <!-- ===== DASHBOARD ===== -->
-        <div class="dashboard">
+        <h2 class="title">Job Applications</h2>
 
-            <div class="stat-card total">
-                <div>Total</div>
-                <div class="big">{stats.Total}</div>
+        <div class="stats">
+
+            <div class="card total">
+                <p>Total Applications</p>
+                <h3>{totalCount}</h3>
             </div>
 
-            <div class="stat-card applied">
-                <div>Applied</div>
-                <div class="big">{stats.Applied}</div>
-                <div>{stats.AppliedPercent}%</div>
-                <div class="bar">
-                    <div class="fill" style={appliedWidth}></div>
-                </div>
+            <div class="card applied">
+                <p>Applied</p>
+                <h3>{appliedCount}</h3>
             </div>
 
-            <div class="stat-card interviewing">
-                <div>Interviewing</div>
-                <div class="big">{stats.Interviewing}</div>
-                <div>{stats.InterviewingPercent}%</div>
-                <div class="bar">
-                    <div class="fill" style={interviewingWidth}></div>
-                </div>
+            <div class="card interviewing">
+                <p>Interviewing</p>
+                <h3>{interviewingCount}</h3>
             </div>
 
-            <div class="stat-card offered">
-                <div>Offered</div>
-                <div class="big">{stats.Offered}</div>
-                <div>{stats.OfferedPercent}%</div>
-                <div class="bar">
-                    <div class="fill" style={offeredWidth}></div>
-                </div>
+            <div class="card offered">
+                <p>Offered</p>
+                <h3>{offeredCount}</h3>
             </div>
 
-            <div class="stat-card rejected">
-                <div>Rejected</div>
-                <div class="big">{stats.Rejected}</div>
-                <div>{stats.RejectedPercent}%</div>
-                <div class="bar">
-                    <div class="fill" style={rejectedWidth}></div>
-                </div>
+            <div class="card rejected">
+                <p>Rejected</p>
+                <h3>{rejectedCount}</h3>
             </div>
 
         </div>
 
-        <!-- ===== FILTERS ===== -->
-        <div class="slds-p-horizontal_medium slds-m-bottom_medium">
-
-            <lightning-input
-                label="Search Candidate"
-                value={searchKey}
-                onchange={handleSearch}>
-            </lightning-input>
-
-            <lightning-combobox
-                class="slds-m-top_small"
-                label="Filter by Status"
-                value={selectedStatus}
-                options={statusOptions}
-                onchange={handleStatusFilter}>
-            </lightning-combobox>
-
-        </div>
-
-        <!-- ===== APPLICATION LIST ===== -->
         <template for:each={applications} for:item="app">
-
-            <div key={app.Id} class="app-card">
+            <div key={app.Id} class="application-card">
 
                 <div class="left">
                     <p><strong>Name:</strong> {app.Name}</p>
                     <p><strong>Position:</strong> {app.Position__c}</p>
                     <p><strong>Company:</strong> {app.Company__r.Name}</p>
+                    <p>
+                        <strong>Status:</strong>
+                        <span class={app.statusClass}>{app.Status__c}</span>
+                    </p>
+                    <p><strong>Applied Date:</strong> {app.Applied_Date__c}</p>
+                    <p><strong>Interview Date:</strong> {app.Interview_Date__c}</p>
                 </div>
 
                 <div class="right">
-                    <p><strong>Status:</strong> {app.Status__c}</p>
-                    <p>Applied: {app.formattedAppliedDate}</p>
-                    <p>Interview: {app.formattedInterviewDate}</p>
-
                     <lightning-button
-                        variant="brand"
                         label="Update Status"
+                        variant="brand"
                         data-id={app.Id}
                         onclick={openModal}>
                     </lightning-button>
-
                 </div>
 
             </div>
-
         </template>
 
-        <!-- ===== PAGINATION ===== -->
-        <div class="slds-align_absolute-center slds-m-vertical_large">
+        <template if:true={showModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
 
-            <lightning-button
-                label="Previous"
-                onclick={handlePrevious}
-                disabled={disablePrevious}>
-            </lightning-button>
+                    <header class="slds-modal__header">
+                        <h2 class="slds-text-heading_medium">Update Status</h2>
+                    </header>
 
-            <span class="slds-m-horizontal_medium">
-                Page {currentPage} of {totalPages}
-            </span>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-combobox
+                            label="Select Status"
+                            value={selectedStatus}
+                            options={statusOptions}
+                            onchange={handleStatusChange}>
+                        </lightning-combobox>
+                    </div>
 
-            <lightning-button
-                label="Next"
-                onclick={handleNext}
-                disabled={disableNext}>
-            </lightning-button>
+                    <footer class="slds-modal__footer">
+                        <lightning-button
+                            label="Cancel"
+                            onclick={closeModal}>
+                        </lightning-button>
 
-        </div>
+                        <lightning-button
+                            label="Save"
+                            variant="brand"
+                            onclick={updateStatus}
+                            class="slds-m-left_small">
+                        </lightning-button>
+                    </footer>
 
-    </lightning-card>
+                </div>
+            </section>
+
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+    </div>
 
 </template>

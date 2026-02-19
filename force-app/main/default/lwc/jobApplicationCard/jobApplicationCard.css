@@ -1,38 +1,42 @@
-/* ===== DASHBOARD ===== */
+.container {
+    padding: 24px;
+    background: #f4f6f9;
+}
 
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
+.title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+.stats {
+    display: flex;
+    gap: 18px;
     margin-bottom: 30px;
 }
 
-/* ===== STAT CARDS ===== */
-
-.stat-card {
-    padding: 24px;
-    border-radius: 16px;
+.card {
+    flex: 1;
+    padding: 22px;
+    border-radius: 14px;
     color: white;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+    transition: 0.3s ease;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
-.stat-card:hover {
+.card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
 }
 
-.stat-card .big {
-    font-size: 32px;
-    font-weight: 700;
-    margin-top: 10px;
+.card h3 {
+    font-size: 28px;
+    margin-top: 8px;
 }
-
-/* ===== CARD COLORS ===== */
 
 .total {
-    background: linear-gradient(135deg, #0f4c81, #1f78d1);
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
 }
 
 .applied {
@@ -40,80 +44,68 @@
 }
 
 .interviewing {
-    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    background: linear-gradient(135deg, #2193b0, #6dd5ed);
 }
 
 .offered {
-    background: linear-gradient(135deg, #00b09b, #96c93d);
+    background: linear-gradient(135deg, #11998e, #38ef7d);
 }
 
 .rejected {
-    background: linear-gradient(135deg, #cb2d3e, #ef473a);
+    background: linear-gradient(135deg, #ff512f, #dd2476);
 }
 
-/* ===== FILTER SECTION ===== */
-
-.filter-section {
-    display: flex;
-    gap: 20px;
-    padding: 0 20px 20px 20px;
-}
-
-lightning-input,
-lightning-combobox {
-    max-width: 250px;
-}
-
-/* ===== APPLICATION CARDS ===== */
-
-.list-section {
-    padding: 0 20px 20px 20px;
-}
-
-.app-card {
+.application-card {
+    background: white;
+    padding: 22px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 20px;
-    margin-bottom: 18px;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: 0.3s ease;
 }
 
-.app-card:hover {
+.application-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.18);
 }
 
-.app-card .left {
+.left {
     flex: 1;
 }
 
-.app-card .right {
-    text-align: right;
+.right {
+    display: flex;
+    align-items: center;
 }
 
-.app-card p {
-    margin: 4px 0;
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
 }
 
-/* ===== RESPONSIVE ===== */
+.badge-applied {
+    background: #ff4b2b;
+}
 
-@media screen and (max-width: 768px) {
+.badge-interview {
+    background: #0072ff;
+}
 
-    .filter-section {
-        flex-direction: column;
-    }
+.badge-offered {
+    background: #00b09b;
+}
 
-    .app-card {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+.badge-rejected {
+    background: #dd2476;
+}
 
-    .app-card .right {
-        text-align: left;
-        margin-top: 12px;
-    }
+
+lightning-combobox {
+    position: relative;
+    z-index: 2000;
 }

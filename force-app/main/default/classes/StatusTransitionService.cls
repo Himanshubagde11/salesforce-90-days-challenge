@@ -1,37 +1,43 @@
 public with sharing class StatusTransitionService {
 
-    public static void validateTransition(String fromStatus, String toStatus) {
+    @AuraEnabled(cacheable=true)
+    public static List<String> getAllowedNextStatuses(String currentStatus) {
 
-        String currentProfile = [
-            SELECT Profile.Name
-            FROM User
-            WHERE Id = :UserInfo.getUserId()
-        ].Profile.Name;
+        List<String> allowedStatuses = new List<String>();
 
         List<Status_Transition_Rule__mdt> rules = [
-            SELECT From_Status__c, To_Status__c, Allowed_Profile__c
+            SELECT To_Status__c, Is_Allowed__c
             FROM Status_Transition_Rule__mdt
-            WHERE From_Status__c = :fromStatus
-            AND To_Status__c = :toStatus
+            WHERE From_Status__c = :currentStatus
+            AND Is_Allowed__c = true
         ];
 
-        if (rules.isEmpty()) {
-            throw new AuraHandledException('Invalid status transition.');
+        for(Status_Transition_Rule__mdt rule : rules) {
+            allowedStatuses.add(rule.To_Status__c);
         }
 
-        Boolean authorized = false;
+        return allowedStatuses;
+    }
 
-        for (Status_Transition_Rule__mdt rule : rules) {
-            if (rule.Allowed_Profile__c == currentProfile) {
-                authorized = true;
-                break;
-            }
+    public static void validateTransition(String oldStatus, String newStatus) {
+
+        if(oldStatus == newStatus) {
+            return;
         }
 
-        if (!authorized) {
-            throw new AuraHandledException(
-                'You are not authorized to perform this transition.'
-            );
+        List<Status_Transition_Rule__mdt> rules = [
+            SELECT Is_Allowed__c
+            FROM Status_Transition_Rule__mdt
+            WHERE From_Status__c = :oldStatus
+            AND To_Status__c = :newStatus
+        ];
+
+        if(rules.isEmpty()) {
+            throw new AuraHandledException('Invalid transition');
+        }
+
+        if(!rules[0].Is_Allowed__c) {
+            throw new AuraHandledException('Transition not allowed');
         }
     }
 }
