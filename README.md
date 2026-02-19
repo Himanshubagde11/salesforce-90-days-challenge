@@ -3863,3 +3863,114 @@ System stable.
 Dashboard operational.
 Business rules enforced.
 Pagination scalable.
+---
+# Day 59  UI & Status Engine Stabilization (LWC + Apex)
+
+Today focused on stabilizing architecture, fixing integration issues, and enforcing backend-driven workflow control.
+
+---
+
+## 🔧 1. Apex–LWC Integration Fix
+
+- Resolved deployment error:  
+  `Unable to find Apex action method referenced as 'JobApplicationController.getApplications'`
+- Corrected Apex import references in LWC
+- Ensured proper `@AuraEnabled(cacheable=true)` usage
+- Implemented stable `refreshApex` pattern
+- Verified successful deployment and org synchronization
+
+---
+
+## 2. Server-Side Status Transition Enforcement
+
+Moved workflow validation logic to Apex to prevent backward transitions.
+
+### Business Rule:
+Interviewing → Applied transition is not allowed.
+
+### Implementation:
+
+```apex
+@AuraEnabled
+public static void updateStatus(Id recordId, String newStatus) {
+
+    Job_Application__c app = [
+        SELECT Id, Status__c
+        FROM Job_Application__c
+        WHERE Id = :recordId
+        LIMIT 1
+    ];
+
+    if(app.Status__c == 'Interviewing' && newStatus == 'Applied'){
+        throw new AuraHandledException('Invalid status transition');
+    }
+
+    app.Status__c = newStatus;
+    update app;
+}
+```
+
+### Impact:
+- Prevents invalid workflow rollback
+- Enforces business rules at server level
+- Ensures data integrity
+- UI cannot bypass logic
+
+---
+
+## 3. UI Refinement
+
+- Dual-gradient statistics cards
+- Hover elevation effects
+- Dynamic status badges
+- Modal-based status update system
+- Brand-consistent button styling
+- Clean layout spacing and alignment
+
+---
+
+## 4. Error Handling Stabilization
+
+- Implemented `AuraHandledException`
+- Proper toast-based feedback using `ShowToastEvent`
+- Prevented silent failures
+- Backend errors now surface clearly in UI
+
+---
+
+## 5. Git & Deployment Discipline
+
+- Clean commit structure
+- Resolved local vs remote mismatch
+- Verified deployment success
+- Pushed stable build to GitHub
+
+---
+
+## 📊 Architecture Improvement
+
+**Before:**
+- Apex reference errors
+- Weak status validation
+- UI inconsistencies
+
+**After:**
+- Stable LWC–Apex communication
+- Controlled state machine logic
+- Production-ready validation
+- Improved UI consistency
+
+---
+
+## Key Learning
+
+Building features is easy.  
+Stabilizing architecture is engineering.
+
+Today focused on:
+- Integration correctness
+- Backend rule enforcement
+- System stability
+- Production discipline
+
+---
