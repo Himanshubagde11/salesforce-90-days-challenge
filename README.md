@@ -3974,3 +3974,65 @@ Today focused on:
 - Production discipline
 
 ---
+## Day 60 – Real-Time Event-Driven Dashboard Sync
+
+### Objective
+Upgrade the Job Application Dashboard to support real-time multi-user synchronization using Platform Events and empApi.
+
+---
+
+### Problem Statement
+
+Previously:
+- Status updates refreshed only the current user’s dashboard.
+- Other active users did not see updates in real time.
+- The system was not suitable for multi-user environments.
+
+---
+
+### Solution Implemented
+
+Implemented an event-driven architecture using:
+
+- **Platform Events**
+- **EventBus.publish() in Apex**
+- **empApi subscription in LWC**
+- **refreshApex() for UI synchronization**
+
+---
+
+### Architecture Flow
+User Updates Status ↓ Apex updateStatus() ↓ EventBus.publish(Job_Status_Update__e) ↓ Platform Event Channel ↓ LWC empApi Subscriber ↓ refreshApex() ↓ All Active Dashboards Auto-Refresh
+---
+
+### Platform Event Configuration
+
+**Event Name:** `Job_Status_Update__e`
+
+**Fields:**
+- `RecordId__c` (Text 18)
+- `NewStatus__c` (Text 50)
+
+---
+
+### Apex Event Publishing
+
+```apex
+Job_Status_Update__e eventObj = new Job_Status_Update__e(
+    RecordId__c = recordId,
+    NewStatus__c = newStatus
+);
+
+EventBus.publish(eventObj);
+```
+### LWC Subscription Using empApi
+```js
+import { subscribe } from 'lightning/empApi';
+import { refreshApex } from '@salesforce/apex';
+
+channelName = '/event/Job_Status_Update__e';
+
+subscribe(this.channelName, -1, (response) => {
+    refreshApex(this.wiredResult);
+});
+```
