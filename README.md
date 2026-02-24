@@ -4036,3 +4036,103 @@ subscribe(this.channelName, -1, (response) => {
     refreshApex(this.wiredResult);
 });
 ```
+## Day 61 Layered Architecture Refactor (Controller → Service → Logger)
+
+Today I refactored the Job Application System into a proper layered architecture to improve maintainability, scalability, and separation of concerns.
+
+---
+
+### Objective
+
+Move from feature-based coding to structured system design thinking.
+
+---
+
+## Architecture Upgrade
+
+Previously:
+- Controller handled queries, business logic, event publishing, and monitoring.
+
+Now:
+- **Controller Layer** → API exposure only
+- **Service Layer** → Business logic + Status Engine
+- **Logging Layer** → Centralized monitoring
+- **Event Layer** → Platform Event publish for real-time sync
+- **UI Layer (LWC)** → Event-driven refresh
+
+---
+
+## Layer Breakdown
+
+### 1️. Controller Layer
+Thin API exposure layer using `@AuraEnabled`.
+Delegates all business logic to Service class.
+
+### 2️. Service Layer
+Handles:
+- Data queries
+- Status transition validation (forward-only engine)
+- Event publishing
+- Business rules enforcement
+
+### 3️. Logging Layer
+Centralized logging utility for monitoring:
+- Improves traceability
+- Keeps controller clean
+- Enables future log framework extension
+
+---
+
+## Event-Driven Flow
+
+User Action  
+↓  
+Controller  
+↓  
+Service Layer  
+↓  
+Database Update  
+↓  
+Platform Event Publish  
+↓  
+LWC empApi Subscriber  
+↓  
+Automatic UI Refresh  
+
+---
+
+## Key Concepts Practiced
+
+- Separation of Concerns
+- Layered Architecture Design
+- Thin Controller Pattern
+- Business Logic Isolation
+- Event-Driven System Design
+- Maintainable Code Structure
+- Monitoring Strategy Introduction
+
+---
+
+## Why This Matters
+
+This refactor transforms the project from:
+> "Feature-based development"
+
+to
+
+> "Scalable Salesforce application architecture"
+
+This structure prepares the system for:
+- Large data volumes
+- Complex validations
+- Multi-team development
+- Production-grade deployment
+
+---
+
+### Status Engine Stability Confirmed
+- Backward transition properly blocked
+- Real-time synchronization preserved
+- Logging verified via Debug Logs
+
+---
