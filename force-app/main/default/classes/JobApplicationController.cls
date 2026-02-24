@@ -25,11 +25,27 @@ public with sharing class JobApplicationController {
             LIMIT 1
         ];
 
-        if(app.Status__c == 'Interviewing' && newStatus == 'Applied'){
-            throw new AuraHandledException('Invalid status transition');
+        Map<String, Integer> orderMap = new Map<String, Integer>{
+            'Applied' => 1,
+            'Interviewing' => 2,
+            'Offered' => 3,
+            'Rejected' => 4
+        };
+
+        if(orderMap.containsKey(app.Status__c) &&
+           orderMap.containsKey(newStatus) &&
+           orderMap.get(newStatus) < orderMap.get(app.Status__c)) {
+            throw new AuraHandledException('Backward status transition not allowed');
         }
 
         app.Status__c = newStatus;
         update app;
+
+        Job_Status_Update__e eventObj = new Job_Status_Update__e(
+            RecordId__c = recordId,
+            NewStatus__c = newStatus
+        );
+
+        EventBus.publish(eventObj);
     }
 }

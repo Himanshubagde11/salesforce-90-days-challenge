@@ -2,6 +2,7 @@ import { LightningElement, track, wire } from 'lwc';
 import getApplications from '@salesforce/apex/JobApplicationController.getApplications';
 import updateStatus from '@salesforce/apex/JobApplicationController.updateStatus';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { subscribe, onError } from 'lightning/empApi';
 import { refreshApex } from '@salesforce/apex';
 
 export default class JobApplicationCard extends LightningElement {
@@ -11,13 +12,14 @@ export default class JobApplicationCard extends LightningElement {
     @track selectedRecordId;
     @track selectedStatus;
 
+    wiredResult;
+    channelName = '/event/Job_Status_Update__e';
+
     totalCount = 0;
     appliedCount = 0;
     interviewingCount = 0;
     offeredCount = 0;
     rejectedCount = 0;
-
-    wiredResult;
 
     statusOptions = [
         { label: 'Applied', value: 'Applied' },
@@ -29,14 +31,26 @@ export default class JobApplicationCard extends LightningElement {
     @wire(getApplications)
     wiredApplications(result) {
         this.wiredResult = result;
-
         if (result.data) {
             this.prepareData(result.data);
         }
-
         if (result.error) {
             console.error(result.error);
         }
+    }
+
+    connectedCallback() {
+        this.subscribeToPlatformEvent();
+    }
+
+    subscribeToPlatformEvent() {
+        subscribe(this.channelName, -1, (response) => {
+            refreshApex(this.wiredResult);
+        });
+
+        onError(error => {
+            console.error('EMP API error: ', error);
+        });
     }
 
     prepareData(data) {
@@ -55,7 +69,6 @@ export default class JobApplicationCard extends LightningElement {
             if (app.Status__c === 'Rejected') this.rejectedCount++;
 
             let statusClass = 'status-badge';
-
             if (app.Status__c === 'Applied') statusClass += ' badge-applied';
             if (app.Status__c === 'Interviewing') statusClass += ' badge-interview';
             if (app.Status__c === 'Offered') statusClass += ' badge-offered';
@@ -70,7 +83,7 @@ export default class JobApplicationCard extends LightningElement {
     }
 
     openModal(event) {
-        this.selectedRecordId = event.currentTarget.dataset.id;
+        this.selectedRecordId = event.target.dataset.id;
         this.showModal = true;
     }
 
@@ -94,11 +107,10 @@ export default class JobApplicationCard extends LightningElement {
         .then(() => {
             this.showToast('Success', 'Status updated successfully', 'success');
             this.showModal = false;
-            return refreshApex(this.wiredResult);
         })
         .catch(error => {
-            let message = 'Error occurred';
 
+            let message = 'Error occurred';
             if (error.body && error.body.message) {
                 message = error.body.message;
             }
