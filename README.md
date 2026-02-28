@@ -4136,3 +4136,105 @@ This structure prepares the system for:
 - Logging verified via Debug Logs
 
 ---
+# Day 62 – Backend Keyset Pagination with Service Layer Architecture
+
+## Objective
+
+Implement scalable backend-driven pagination using keyset pagination while maintaining proper separation between Controller and Service layers.
+
+---
+
+## Implementation Details
+
+### 1. Service Layer Architecture
+
+Introduced a dedicated `JobApplicationService` class responsible for business logic.
+
+The Controller delegates data retrieval to the Service layer.
+
+Architecture flow:
+
+LWC → Controller → Service → Database
+
+Benefits:
+- Improved maintainability
+- Better scalability
+- Clear separation of concerns
+- Easier unit testing
+
+---
+
+### 2. Keyset Pagination (CreatedDate-Based)
+
+Pagination implemented using:
+
+```sql
+WHERE CreatedDate < :lastCreatedDate
+ORDER BY CreatedDate DESC
+LIMIT :pageSize
+```
+
+This avoids OFFSET-based pagination, which degrades performance at scale.
+
+Advantages:
+- Better performance for large datasets
+- Governor limit safe
+- Prevents record skipping issues
+- Efficient database usage
+
+---
+
+### 3. Active Record Filtering
+
+Only active records are returned:
+
+```sql
+WHERE Is_Active__c = true
+```
+
+This ensures:
+- Business rule compliance
+- Cleaner datasets
+- Reduced unnecessary data processing
+
+---
+
+### 4. Validation and Log Testing
+
+Pagination verified using Execute Anonymous and debug logs.
+
+Tested:
+- First page retrieval
+- Second page retrieval using lastCreatedDate
+- Governor limits consumption
+- Validation rule stability
+- Trigger execution stability
+
+Observed results:
+- SOQL Queries: 2
+- Query Rows: 2
+- DML Statements: 0
+- No validation errors
+- No recursion issues
+
+---
+
+## Final Architecture
+
+LWC  
+→ Apex Controller  
+→ Service Layer  
+→ Dynamic SOQL (Keyset Pagination)  
+→ Database  
+
+---
+
+## Technical Outcome
+
+- Backend pagination implemented using keyset strategy
+- Service layer pattern introduced
+- Controller kept lightweight
+- Governor limits verified
+- System stability confirmed via logs
+
+---
