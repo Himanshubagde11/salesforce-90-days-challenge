@@ -13,6 +13,7 @@ export default class JobApplicationCard extends LightningElement {
     @track selectedStatus;
 
     wiredResult;
+
     channelName = '/event/Job_Status_Update__e';
 
     totalCount = 0;
@@ -28,13 +29,13 @@ export default class JobApplicationCard extends LightningElement {
         { label: 'Rejected', value: 'Rejected' }
     ];
 
-    @wire(getApplications)
+    @wire(getApplications, { lastCreatedDate: null, pageSize: 50 })
     wiredApplications(result) {
         this.wiredResult = result;
+
         if (result.data) {
             this.prepareData(result.data);
-        }
-        if (result.error) {
+        } else if (result.error) {
             console.error(result.error);
         }
     }
@@ -44,7 +45,7 @@ export default class JobApplicationCard extends LightningElement {
     }
 
     subscribeToPlatformEvent() {
-        subscribe(this.channelName, -1, (response) => {
+        subscribe(this.channelName, -1, () => {
             refreshApex(this.wiredResult);
         });
 
@@ -69,10 +70,11 @@ export default class JobApplicationCard extends LightningElement {
             if (app.Status__c === 'Rejected') this.rejectedCount++;
 
             let statusClass = 'status-badge';
+
             if (app.Status__c === 'Applied') statusClass += ' badge-applied';
-            if (app.Status__c === 'Interviewing') statusClass += ' badge-interview';
-            if (app.Status__c === 'Offered') statusClass += ' badge-offered';
-            if (app.Status__c === 'Rejected') statusClass += ' badge-rejected';
+            else if (app.Status__c === 'Interviewing') statusClass += ' badge-interview';
+            else if (app.Status__c === 'Offered') statusClass += ' badge-offered';
+            else if (app.Status__c === 'Rejected') statusClass += ' badge-rejected';
 
             return {
                 ...app,
@@ -83,7 +85,7 @@ export default class JobApplicationCard extends LightningElement {
     }
 
     openModal(event) {
-        this.selectedRecordId = event.target.dataset.id;
+        this.selectedRecordId = event.currentTarget.dataset.id;
         this.showModal = true;
     }
 
@@ -107,6 +109,8 @@ export default class JobApplicationCard extends LightningElement {
         .then(() => {
             this.showToast('Success', 'Status updated successfully', 'success');
             this.showModal = false;
+
+            return refreshApex(this.wiredResult);
         })
         .catch(error => {
 
