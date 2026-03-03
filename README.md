@@ -4238,3 +4238,113 @@ LWC
 - System stability confirmed via logs
 
 ---
+# Day 63 Smart Trigger Change Detection & Logging Architecture
+
+## Objective
+
+Today’s focus was building intelligent trigger logic instead of executing unnecessary operations on every update.
+
+The goal was to detect real field changes and execute logic only when `Status__c` is modified.
+
+This improves:
+- Performance
+- Governor limit safety
+- Data accuracy
+- Production readiness
+
+---
+
+## Architecture Implemented
+
+LWC  
+→ Apex Controller  
+→ Service Layer  
+→ Database Update  
+→ Trigger Execution  
+→ Conditional Logging  
+
+---
+
+## Key Implementation
+
+### 1. Status Change Detection
+
+Used `Trigger.oldMap` and `Trigger.new` to compare old vs new values.
+if(record.Status__c != oldRecord.Status__c)
+This ensures logging logic runs only when status changes.
+
+---
+
+### 2. Before Update Logic
+
+Used `before update` to detect change.
+
+Purpose:
+- Validation
+- Debug tracing
+- Conditional checks
+
+---
+
+### 3. After Update Logging
+
+Created a custom object:
+
+Application_Log__c
+
+Fields:
+- Job_Application__c (Lookup)
+- Old_Status__c
+- New_Status__c
+
+Log record is inserted only when status changes.
+
+---
+
+### 4. Service Layer Restoration
+
+Reintroduced missing method:
+updateStatusEngine(Id recordId, String newStatus)
+Ensured clean separation:
+- Controller handles exposure
+- Service handles business logic
+
+---
+
+### 5. Pagination Fix
+
+Updated query to remove unnecessary Is_Active__c filter to display all records.
+
+Implemented dynamic pagination using:
+
+- lastCreatedDate
+- LIMIT clause
+- ORDER BY CreatedDate DESC
+
+---
+
+## Testing Performed
+
+1. Changed only Position__c → No log created  
+2. Changed Status__c → Log created successfully  
+3. Verified LWC auto refresh  
+4. Verified service layer call chain  
+5. Confirmed deployment stability  
+
+---
+
+## Key Learning
+
+- Difference between before and after trigger
+- How to detect field-level changes
+- Avoiding unnecessary DML operations
+- Clean multi-layer Apex architecture
+- Proper SFDX deployment structure
+
+---
+
+## Result
+
+Smart trigger behavior implemented successfully.
+System now logs only meaningful status transitions.
+Production-level logic improved.
