@@ -1,43 +1,37 @@
 public with sharing class StatusTransitionService {
 
-    @AuraEnabled(cacheable=true)
-    public static List<String> getAllowedNextStatuses(String currentStatus) {
+    public static void validateTransition(String fromStatus, String toStatus) {
 
-        List<String> allowedStatuses = new List<String>();
-
-        List<Status_Transition_Rule__mdt> rules = [
-            SELECT To_Status__c, Is_Allowed__c
-            FROM Status_Transition_Rule__mdt
-            WHERE From_Status__c = :currentStatus
-            AND Is_Allowed__c = true
-        ];
-
-        for(Status_Transition_Rule__mdt rule : rules) {
-            allowedStatuses.add(rule.To_Status__c);
-        }
-
-        return allowedStatuses;
-    }
-
-    public static void validateTransition(String oldStatus, String newStatus) {
-
-        if(oldStatus == newStatus) {
-            return;
-        }
+        String currentProfile = [
+            SELECT Profile.Name
+            FROM User
+            WHERE Id = :UserInfo.getUserId()
+        ].Profile.Name;
 
         List<Status_Transition_Rule__mdt> rules = [
-            SELECT Is_Allowed__c
+            SELECT From_Status__c, To_Status__c, Allowed_Profile__c
             FROM Status_Transition_Rule__mdt
-            WHERE From_Status__c = :oldStatus
-            AND To_Status__c = :newStatus
+            WHERE From_Status__c = :fromStatus
+            AND To_Status__c = :toStatus
         ];
 
-        if(rules.isEmpty()) {
-            throw new AuraHandledException('Invalid transition');
+        if (rules.isEmpty()) {
+            throw new AuraHandledException('Invalid status transition.');
         }
 
-        if(!rules[0].Is_Allowed__c) {
-            throw new AuraHandledException('Transition not allowed');
+        Boolean authorized = false;
+
+        for (Status_Transition_Rule__mdt rule : rules) {
+            if (rule.Allowed_Profile__c == currentProfile) {
+                authorized = true;
+                break;
+            }
+        }
+
+        if (!authorized) {
+            throw new AuraHandledException(
+                'You are not authorized to perform this transition.'
+            );
         }
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Salary_Required_For_Experienced</fullName>
+    <active>true</active>
+    <errorConditionFormula>RecordType.Name = &quot;Experienced Application&quot; &amp;&amp;
+ISBLANK(Expected_salary__c)</errorConditionFormula>
+    <errorMessage>Salary is required for Experienced Application</errorMessage>
+</ValidationRule>

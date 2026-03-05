@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Experienced_Application</fullName>
+    <active>true</active>
+    <label>Experienced Application</label>
+    <picklistValues>
+        <picklist>Status__c</picklist>
+        <values>
+            <fullName>Applied</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Interviewing</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Offered</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Rejected</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+</RecordType>

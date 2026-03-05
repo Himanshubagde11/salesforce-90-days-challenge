@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Expected_Salary_Required</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+ISPICKVAL(Status__c , &quot;Offered&quot;),
+ISBLANK(Expected_salary__c)
+)</errorConditionFormula>
+    <errorMessage>Expected Salary is required when status is Offered.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Salary_limitation_for_Freshers</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+ $RecordType.Name = &quot;Fresher Application&quot;,
+ Expected_salary__c &gt; 50000
+)</errorConditionFormula>
+    <errorMessage>Fresher expected salary cannot exceed 50,000 per month</errorMessage>
+</ValidationRule>

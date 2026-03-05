@@ -26,21 +26,54 @@ public with sharing class JobApplicationService {
     }
 
 
-    public static void updateStatusEngine(Id recordId, String newStatus) {
+    public static void updateStatusEngine(Id recordId, String newStatus){
 
-        if (recordId == null || String.isBlank(newStatus)) {
-            throw new AuraHandledException('Invalid input provided.');
+        try{
+
+            if (recordId == null || String.isBlank(newStatus)) {
+                throw new AuraHandledException('Invalid input provided.');
+            }
+
+            Job_Application__c app = [
+                SELECT Id, Status__c
+                FROM Job_Application__c
+                WHERE Id = :recordId
+                LIMIT 1
+            ];
+
+            String currentStatus = app.Status__c;
+
+            Map<String, Set<String>> allowedTransitions = new Map<String, Set<String>>{
+                'Applied' => new Set<String>{'Interviewing','Rejected'},
+                'Interviewing' => new Set<String>{'Offered','Rejected'},
+                'Offered' => new Set<String>{},
+                'Rejected' => new Set<String>{}
+            };
+
+            if(!allowedTransitions.containsKey(currentStatus) ||
+               !allowedTransitions.get(currentStatus).contains(newStatus)){
+
+                throw new AuraHandledException(
+                    'Invalid status transition from ' +
+                    currentStatus + ' to ' + newStatus
+                );
+            }
+
+            app.Status__c = newStatus;
+
+            update app;
+
         }
+        catch(Exception ex){
 
-        Job_Application__c app = [
-            SELECT Id, Status__c
-            FROM Job_Application__c
-            WHERE Id = :recordId
-            LIMIT 1
-        ];
+            ErrorLogger.logError(
+                ex,
+                'JobApplicationService',
+                'updateStatusEngine',
+                recordId
+            );
 
-        app.Status__c = newStatus;
-
-        update app;
+            throw new AuraHandledException(ex.getMessage());
+        }
     }
 }
