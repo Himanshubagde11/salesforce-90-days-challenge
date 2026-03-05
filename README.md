@@ -4348,3 +4348,74 @@ Implemented dynamic pagination using:
 Smart trigger behavior implemented successfully.
 System now logs only meaningful status transitions.
 Production-level logic improved.
+
+## Day 64 – Centralized Apex Error Logging Framework
+
+### Objective
+The goal of Day 64 was to implement a centralized error logging mechanism in the Salesforce application. Instead of relying on temporary debug logs, the system now records errors permanently in a custom object so that developers and administrators can analyze issues occurring in production.
+
+---
+
+### Architecture Implemented
+
+User Action (LWC)
+        ↓
+Apex Controller
+        ↓
+Service Layer (JobApplicationService)
+        ↓
+Try/Catch Error Handling
+        ↓
+ErrorLogger Class
+        ↓
+Error_Log__c Object (Persistent Error Storage)
+
+---
+
+### Components Implemented
+
+#### 1. Custom Object: `Error_Log__c`
+A new custom object was created to store runtime errors.
+
+Fields:
+- `Error_Message__c` – Stores the exception message.
+- `Stack_Trace__c` – Captures the complete stack trace.
+- `Class_Name__c` – Apex class where the error occurred.
+- `Method_Name__c` – Method where the error occurred.
+- `Related_Record_Id__c` – Optional reference to the affected record.
+
+This allows developers to review errors directly from Salesforce without needing debug logs.
+
+---
+
+#### 2. ErrorLogger Utility Class
+A reusable logging utility was created to capture exceptions from anywhere in the system.
+
+Key responsibilities:
+- Capture error message
+- Capture stack trace
+- Store class and method information
+- Insert a record in `Error_Log__c`
+
+Example usage:
+try { // business logic } catch(Exception ex) { ErrorLogger.logError(ex, 'ClassName', 'MethodName', recordId); }
+---
+
+#### 3. Service Layer Error Handling
+The `JobApplicationService` class was updated with proper `try/catch` blocks to ensure that all runtime exceptions are logged.
+
+This ensures:
+- Better observability
+- Production error traceability
+- Easier debugging
+
+---
+
+### Testing Performed
+
+1. Forced a runtime exception using a divide-by-zero operation.
+2. The exception was caught and logged successfully.
+3. Verified that a record was created in `Error_Log__c`.
+4. Confirmed that error message and stack trace were stored correctly.
+
+---
