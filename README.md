@@ -4419,3 +4419,89 @@ This ensures:
 4. Confirmed that error message and stack trace were stored correctly.
 
 ---
+## Day 65 Job Application Status Logging System
+
+Today I implemented an **Audit Logging System** to track status changes in job applications.  
+This ensures that every status transition is recorded for transparency and debugging.
+
+### Objective
+To maintain a historical record of job application status changes such as:
+
+- Applied → Interviewing
+- Interviewing → Offered
+- Offered → Rejected
+- Rejected → Applied
+
+### Implementation
+
+A custom object **Application_Log__c** was created to store status change history.
+
+Each time a job application's status is updated, the system automatically:
+
+1. Detects the change using an **Apex Trigger**
+2. Captures the **Old Status**
+3. Captures the **New Status**
+4. Saves a log record linked to the corresponding Job Application
+
+### Architecture
+
+```
+LWC UI
+   ↓
+Apex Controller
+   ↓
+Service Layer
+   ↓
+DML Update
+   ↓
+Trigger (Before Update)
+   ↓
+Trigger Handler
+   ↓
+Application_Log__c Record Created
+```
+
+### Components Added
+
+**Custom Object**
+- `Application_Log__c`
+
+**Fields**
+- `Job_Application__c` (Lookup to Job Application)
+- `Old_Status__c`
+- `New_Status__c`
+- `CreatedDate`
+
+**Apex Components**
+- `JobApplicationTrigger`
+- `JobApplicationTriggerHandler`
+- `BaseTriggerHandler`
+
+### Key Features
+
+- Tracks every job application status change
+- Stores old and new status values
+- Provides a complete audit trail
+- Helps debugging and monitoring system behavior
+
+### Example Log Record
+
+| Job Application | Old Status | New Status | Created Date |
+|----------------|------------|------------|-------------|
+| Anurag Singh | Rejected | Applied | 06 Mar |
+| Shashwat Jais | Interviewing | Offered | 06 Mar |
+
+### Result
+
+The system now maintains a **complete history of status changes** for job applications, improving visibility and accountability within the recruitment workflow.
+
+### Technologies Used
+
+- Salesforce Apex
+- Apex Triggers
+- Trigger Handler Pattern
+- Custom Objects
+- SOQL
+- Lightning Web Components
+
+---
