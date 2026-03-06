@@ -1,6 +1,8 @@
 import { LightningElement, track, wire } from 'lwc';
+
 import getApplications from '@salesforce/apex/JobApplicationController.getApplications';
 import updateStatus from '@salesforce/apex/JobApplicationController.updateStatus';
+
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { subscribe, onError } from 'lightning/empApi';
 import { refreshApex } from '@salesforce/apex';
@@ -31,12 +33,14 @@ export default class JobApplicationCard extends LightningElement {
 
     @wire(getApplications, { lastCreatedDate: null, pageSize: 50 })
     wiredApplications(result) {
+
         this.wiredResult = result;
 
         if (result.data) {
             this.prepareData(result.data);
-        } else if (result.error) {
-            console.error(result.error);
+        } 
+        else if (result.error) {
+            console.error('Wire Error:', result.error);
         }
     }
 
@@ -45,12 +49,16 @@ export default class JobApplicationCard extends LightningElement {
     }
 
     subscribeToPlatformEvent() {
+
         subscribe(this.channelName, -1, () => {
+
+            console.log('Platform Event Received → Refreshing UI');
+
             refreshApex(this.wiredResult);
         });
 
         onError(error => {
-            console.error('EMP API error: ', error);
+            console.error('EMP API error:', error);
         });
     }
 
@@ -71,10 +79,17 @@ export default class JobApplicationCard extends LightningElement {
 
             let statusClass = 'status-badge';
 
-            if (app.Status__c === 'Applied') statusClass += ' badge-applied';
-            else if (app.Status__c === 'Interviewing') statusClass += ' badge-interview';
-            else if (app.Status__c === 'Offered') statusClass += ' badge-offered';
-            else if (app.Status__c === 'Rejected') statusClass += ' badge-rejected';
+            if (app.Status__c === 'Applied')
+                statusClass += ' badge-applied';
+
+            else if (app.Status__c === 'Interviewing')
+                statusClass += ' badge-interview';
+
+            else if (app.Status__c === 'Offered')
+                statusClass += ' badge-offered';
+
+            else if (app.Status__c === 'Rejected')
+                statusClass += ' badge-rejected';
 
             return {
                 ...app,
@@ -85,45 +100,93 @@ export default class JobApplicationCard extends LightningElement {
     }
 
     openModal(event) {
+
         this.selectedRecordId = event.currentTarget.dataset.id;
+
+        console.log('Selected Record Id:', this.selectedRecordId);
+
+        this.selectedStatus = null;
         this.showModal = true;
     }
 
     closeModal() {
+
         this.showModal = false;
         this.selectedStatus = null;
     }
 
     handleStatusChange(event) {
+
         this.selectedStatus = event.detail.value;
+
+        console.log('Selected Status:', this.selectedStatus);
     }
 
     updateStatus() {
 
-        if (!this.selectedStatus) return;
+        console.log('Updating Record:', this.selectedRecordId);
+        console.log('New Status:', this.selectedStatus);
+
+        if (!this.selectedRecordId) {
+
+            this.showToast(
+                'Error',
+                'Record Id missing',
+                'error'
+            );
+            return;
+        }
+
+        if (!this.selectedStatus) {
+
+            this.showToast(
+                'Error',
+                'Please select a status',
+                'error'
+            );
+            return;
+        }
 
         updateStatus({
             recordId: this.selectedRecordId,
             newStatus: this.selectedStatus
         })
+
         .then(() => {
-            this.showToast('Success', 'Status updated successfully', 'success');
+
+            console.log('Apex Update Success');
+
+            this.showToast(
+                'Success',
+                'Status updated successfully',
+                'success'
+            );
+
             this.showModal = false;
 
             return refreshApex(this.wiredResult);
         })
+
         .catch(error => {
 
+            console.error('Update Error:', error);
+
             let message = 'Error occurred';
+
             if (error.body && error.body.message) {
                 message = error.body.message;
             }
 
-            this.showToast('Error', message, 'error');
+            this.showToast(
+                'Error',
+                message,
+                'error'
+            );
         });
     }
 
     showToast(title, message, variant) {
+
         this.dispatchEvent(
             new ShowToastEvent({
                 title,
