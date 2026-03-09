@@ -27,6 +27,13 @@ public with sharing class JobApplicationTriggerHandler {
                 logRecord.New_Status__c = newApp.Status__c;
 
                 logs.add(logRecord);
+
+                System.enqueueJob(
+                    new ApplicationEmailQueueable(
+                        newApp.Id,
+                        newApp.Status__c
+                    )
+                );
             }
         }
 

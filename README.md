@@ -4505,3 +4505,131 @@ The system now maintains a **complete history of status changes** for job applic
 - Lightning Web Components
 
 ---
+# Day 66 Automated Email Notifications using Queueable Apex
+
+## Overview
+On Day 66, I implemented automated email notifications in the Recruitment App using Queueable Apex.
+
+Whenever the status of a Job Application changes, Salesforce automatically sends an email notification.
+
+This simulates how real recruitment systems notify candidates at different stages of the hiring process.
+
+---
+
+## What I Built
+
+### 1. Queueable Apex Email Automation
+Created a Queueable Apex class that runs asynchronously and sends email notifications based on the status change.
+
+Handled statuses:
+
+- Interviewing
+- Offered
+- Rejected
+
+---
+
+### 2. Dynamic Email Logic
+The email subject and message change depending on the application status.
+
+| Status | Email |
+|------|------|
+| Interviewing | Interview invitation email |
+| Offered | Job offer email |
+| Rejected | Application rejection email |
+
+---
+
+### 3. Trigger Integration
+
+System Flow:
+
+Job Application Status Change  
+↓  
+Apex Trigger  
+↓  
+Trigger Handler  
+↓  
+Queueable Apex  
+↓  
+Email Sent  
+
+---
+
+## Key Code Example
+
+### Queueable Apex Class
+
+```apex
+public class ApplicationEmailQueueable implements Queueable {
+
+    private Id applicationId;
+    private String status;
+
+    public ApplicationEmailQueueable(Id applicationId, String status){
+        this.applicationId = applicationId;
+        this.status = status;
+    }
+
+    public void execute(QueueableContext context){
+
+        Job_Application__c app = [
+            SELECT Id, Name, Status__c, Owner.Email
+            FROM Job_Application__c
+            WHERE Id = :applicationId
+        ];
+
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+
+        email.setToAddresses(new String[] { app.Owner.Email });
+
+        if(status == 'Interviewing'){
+            email.setSubject('Interview Invitation');
+            email.setPlainTextBody('Your application has moved to the Interview stage.');
+        }
+        else if(status == 'Offered'){
+            email.setSubject('Job Offer');
+            email.setPlainTextBody('Congratulations! You have received a job offer.');
+        }
+        else if(status == 'Rejected'){
+            email.setSubject('Application Update');
+            email.setPlainTextBody('Thank you for applying. Unfortunately you were not selected.');
+        }
+
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
+    }
+}
+```
+
+---
+
+## Salesforce Concepts Used
+
+- Apex Triggers
+- Trigger Handler Pattern
+- Queueable Apex
+- Messaging.SingleEmailMessage
+- Asynchronous Processing
+- Email Deliverability
+
+---
+
+## Testing
+
+Steps to test the feature:
+
+1. Update the status of a Job Application record
+2. Trigger detects status change
+3. Queueable Apex runs asynchronously
+4. Email notification is sent
+
+---
+
+## What I Learned
+
+- How asynchronous processing works in Salesforce
+- When to use Queueable Apex
+- How to implement automated notifications
+- How to debug using Apex Jobs and Debug Logs
+
+---
