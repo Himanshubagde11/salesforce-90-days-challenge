@@ -13,12 +13,9 @@ public with sharing class JobApplicationTriggerHandler {
 
             Job_Application__c oldApp = oldMap.get(newApp.Id);
 
-            System.debug('Old Status: ' + oldApp.Status__c);
-            System.debug('New Status: ' + newApp.Status__c);
-
             if(newApp.Status__c != oldApp.Status__c){
 
-                System.debug('STATUS CHANGED - CREATING LOG');
+                System.debug('STATUS CHANGED');
 
                 Application_Log__c logRecord = new Application_Log__c();
 
@@ -29,15 +26,12 @@ public with sharing class JobApplicationTriggerHandler {
                 logs.add(logRecord);
 
                 System.enqueueJob(
-                    new ApplicationEmailQueueable(
-                        newApp.Id,
-                        newApp.Status__c
-                    )
+                    new ApplicationEmailQueueable(newApp.Id, newApp.Status__c)
                 );
+
+                System.debug('QUEUEABLE JOB ADDED');
             }
         }
-
-        System.debug('LOG SIZE: ' + logs.size());
 
         if(!logs.isEmpty()){
             insert logs;

@@ -4633,3 +4633,109 @@ Steps to test the feature:
 - How to debug using Apex Jobs and Debug Logs
 
 ---
+# Day 67 – Queueable Apex Email Notification System
+
+## Overview
+Today I implemented an **asynchronous email notification system** using **Queueable Apex** in Salesforce.  
+The goal is to automatically send an email when the **Status of a Job Application changes**.
+
+This improves performance because the email is processed **asynchronously**, instead of slowing down the main transaction.
+
+---
+
+## Architecture
+
+LWC  
+↓  
+Apex Controller  
+↓  
+Service Layer  
+↓  
+Trigger  
+↓  
+Trigger Handler  
+↓  
+Queueable Apex  
+↓  
+Email Sent
+
+---
+
+## Features Implemented
+
+- Trigger fires when **Job Application Status changes**
+- Trigger Handler manages business logic
+- **Queueable Apex** processes email sending asynchronously
+- Email is sent based on the **Status value**
+- Debug logs added to monitor execution
+- System designed following **Salesforce best practices**
+
+---
+
+## Status-Based Email Logic
+
+| Status | Email Sent |
+|------|------|
+| Interviewing | Interview Invitation Email |
+| Offered | Job Offer Email |
+| Rejected | Application Rejection Email |
+
+---
+
+## Queueable Apex Implementation
+
+Queueable Apex allows running processes in the background without affecting user performance.
+
+### Benefits
+- Asynchronous processing
+- Handles heavy operations
+- Improves scalability
+- Prevents UI delays
+
+---
+
+## Email Process Flow
+
+1. User updates Job Application status
+2. Trigger detects the status change
+3. Trigger Handler processes the logic
+4. Queueable Apex job is added to the queue
+5. Queueable executes in the background
+6. Email notification is sent to the record owner
+
+---
+
+## Debug Logging
+
+Debug statements were added to monitor the process.
+
+Example Logs:
+
+QUEUEABLE STARTED  
+Application Found  
+Using Interview Template  
+Sending Email...  
+EMAIL SENT SUCCESSFULLY
+
+---
+
+## Apex Class Used
+
+ApplicationEmailQueueable.cls
+
+Responsibilities:
+- Fetch Job Application record
+- Check application status
+- Prepare email message
+- Send email asynchronously
+
+---
+
+## Key Learning
+
+- Understanding **Queueable Apex**
+- Sending emails using **Messaging.SingleEmailMessage**
+- Debugging **asynchronous Apex jobs**
+- Implementing **Salesforce trigger framework architecture**
+
+---

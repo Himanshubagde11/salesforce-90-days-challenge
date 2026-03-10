@@ -21,19 +21,26 @@ public class ApplicationEmailQueueable implements Queueable {
             LIMIT 1
         ];
 
+        System.debug('Application Found: ' + app.Name);
+
         Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
 
         email.setToAddresses(new String[] { app.Owner.Email });
 
+        email.setSaveAsActivity(false);
+
         if(status == 'Interviewing'){
+            System.debug('Using Interview Template');
             email.setSubject('Interview Invitation');
             email.setPlainTextBody('Your application has moved to the Interview stage.');
         }
         else if(status == 'Offered'){
+            System.debug('Using Offer Template');
             email.setSubject('Job Offer');
             email.setPlainTextBody('Congratulations! You have received a job offer.');
         }
         else if(status == 'Rejected'){
+            System.debug('Using Rejection Template');
             email.setSubject('Application Update');
             email.setPlainTextBody('Thank you for applying. Unfortunately you were not selected.');
         }
