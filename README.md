@@ -4739,3 +4739,104 @@ Responsibilities:
 - Implementing **Salesforce trigger framework architecture**
 
 ---
+# Day 68 Salesforce Job Application Tracker
+
+## Overview
+On Day 68, I improved the Job Application Tracker system by implementing **Email Templates integration with Queueable Apex**. Now, when the status of a Job Application changes, Salesforce automatically sends an email notification using predefined templates.
+
+This process runs asynchronously using **Queueable Apex**, ensuring better performance and scalability.
+
+---
+
+## Features Implemented
+
+### 1. Email Templates
+Created reusable Salesforce Email Templates for different job application statuses:
+
+- Interview Invitation
+- Job Offer Notification
+- Application Rejection
+
+These templates allow consistent and professional communication with users.
+
+---
+
+### 2. Queueable Apex for Email Sending
+Implemented a Queueable Apex class to send emails asynchronously.
+
+Benefits:
+- Improves system performance
+- Avoids governor limits
+- Allows background processing
+
+Class Used:
+`ApplicationEmailQueueable.cls`
+
+---
+
+### 3. Status Change Detection
+The system detects status changes through the Trigger Handler.
+
+Flow of execution:
+
+Job Application Status Update  
+→ Trigger Executes  
+→ Trigger Handler Detects Status Change  
+→ Queueable Job Added  
+→ Email Template Selected  
+→ Email Sent Automatically
+
+---
+
+## System Architecture
+
+```
+Status Change
+     ↓
+Trigger (JobApplicationTrigger)
+     ↓
+Trigger Handler
+     ↓
+Queueable Apex (ApplicationEmailQueueable)
+     ↓
+Email Template Selected
+     ↓
+Email Sent
+```
+
+---
+
+## Objects Used
+
+Custom Object:
+- `Job_Application__c`
+
+Fields Used:
+- Status__c
+- Interview_Date__c
+- Expected_Salary__c
+- OwnerId
+
+---
+
+## Apex Components
+
+Trigger  
+`JobApplicationTrigger`
+
+Handler Class  
+`JobApplicationTriggerHandler`
+
+Queueable Class  
+`ApplicationEmailQueueable`
+
+---
+
+## What I Learned
+
+- How to use **Queueable Apex for asynchronous processing**
+- How to integrate **Email Templates with Apex**
+- How to design a **Trigger Handler architecture**
+- How to automate communication based on **business logic**
+
+---
