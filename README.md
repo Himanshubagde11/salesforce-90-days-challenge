@@ -4739,56 +4739,49 @@ Responsibilities:
 - Implementing **Salesforce trigger framework architecture**
 
 ---
-# Day 68 Salesforce Job Application Tracker
+# Day 68 – Email Automation using Queueable Apex
 
 ## Overview
-On Day 68, I improved the Job Application Tracker system by implementing **Email Templates integration with Queueable Apex**. Now, when the status of a Job Application changes, Salesforce automatically sends an email notification using predefined templates.
+On Day 68 of the Salesforce 90 Days Challenge, I implemented **Email Automation using Queueable Apex and Email Templates** in the Job Application Tracker project.
 
-This process runs asynchronously using **Queueable Apex**, ensuring better performance and scalability.
+Now, whenever the status of a Job Application changes (Interviewing, Offered, Rejected), the system automatically sends an email notification using a predefined Email Template.
+
+This email is processed asynchronously using **Queueable Apex**, improving performance and following Salesforce best practices.
 
 ---
 
 ## Features Implemented
 
 ### 1. Email Templates
-Created reusable Salesforce Email Templates for different job application statuses:
+Created reusable Salesforce Email Templates for different job application outcomes.
+
+Templates created:
 
 - Interview Invitation
 - Job Offer Notification
 - Application Rejection
 
-These templates allow consistent and professional communication with users.
+These templates allow consistent communication with users.
 
 ---
 
-### 2. Queueable Apex for Email Sending
-Implemented a Queueable Apex class to send emails asynchronously.
+### 2. Queueable Apex for Email Processing
+A Queueable Apex class was implemented to handle email sending asynchronously.
 
 Benefits:
-- Improves system performance
-- Avoids governor limits
-- Allows background processing
+- Non-blocking processing
+- Better performance
+- Follows Salesforce governor limits
 
-Class Used:
+Class used:
 `ApplicationEmailQueueable.cls`
 
 ---
 
-### 3. Status Change Detection
-The system detects status changes through the Trigger Handler.
+### 3. Trigger Based Automation
+When the Job Application status changes, the system automatically processes the email flow.
 
-Flow of execution:
-
-Job Application Status Update  
-→ Trigger Executes  
-→ Trigger Handler Detects Status Change  
-→ Queueable Job Added  
-→ Email Template Selected  
-→ Email Sent Automatically
-
----
-
-## System Architecture
+### Flow
 
 ```
 Status Change
@@ -4801,20 +4794,20 @@ Queueable Apex (ApplicationEmailQueueable)
      ↓
 Email Template Selected
      ↓
-Email Sent
+Email Sent Automatically
 ```
 
 ---
 
-## Objects Used
+## Components Used
 
-Custom Object:
-- `Job_Application__c`
+### Custom Object
+`Job_Application__c`
 
-Fields Used:
+### Important Fields
 - Status__c
 - Interview_Date__c
-- Expected_Salary__c
+- Expected_salary__c
 - OwnerId
 
 ---
@@ -4824,19 +4817,19 @@ Fields Used:
 Trigger  
 `JobApplicationTrigger`
 
-Handler Class  
+Trigger Handler  
 `JobApplicationTriggerHandler`
 
-Queueable Class  
+Queueable Apex  
 `ApplicationEmailQueueable`
 
 ---
 
 ## What I Learned
 
-- How to use **Queueable Apex for asynchronous processing**
+- How to implement **Queueable Apex**
 - How to integrate **Email Templates with Apex**
-- How to design a **Trigger Handler architecture**
-- How to automate communication based on **business logic**
+- How to build a **Trigger Handler architecture**
+- How to automate business processes in Salesforce
 
 ---
