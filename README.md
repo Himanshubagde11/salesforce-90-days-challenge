@@ -4833,3 +4833,115 @@ Queueable Apex
 - How to automate business processes in Salesforce
 
 ---
+# Day 69 – Email Logging System
+
+## Overview
+On Day 69 of the Salesforce 90 Days Challenge, I enhanced the Job Application Tracker by implementing an **Email Logging System**.
+
+Now whenever an email is sent automatically (Interview Invitation, Job Offer, or Rejection), the system also creates a log record. This helps track all email communications related to a job application.
+
+---
+
+## Feature Implemented
+
+### Email Log Object
+A new custom object was created to store email history.
+
+**Object Name**
+```
+Email_Log__c
+```
+
+This object records every email sent by the system.
+
+---
+
+## Fields Created
+
+### Job Application
+```
+Lookup → Job_Application__c
+```
+
+Stores the related job application.
+
+### Email Type
+```
+Picklist
+```
+
+Values:
+```
+Interview Invitation
+Job Offer
+Application Rejection
+```
+
+### Sent Date
+```
+Date/Time
+```
+
+Stores the timestamp when the email was sent.
+
+---
+
+## Updated Queueable Apex
+
+The `ApplicationEmailQueueable` class was updated to create a log record after sending the email.
+
+Flow:
+
+```
+Status Change
+      ↓
+Trigger
+      ↓
+Trigger Handler
+      ↓
+Queueable Apex
+      ↓
+Email Sent
+      ↓
+Email Log Record Created
+```
+
+---
+
+## Benefits
+
+- Tracks all automated email communications
+- Improves system transparency
+- Helps with auditing and debugging
+- Makes the project more production-like
+
+---
+
+## Components Used
+
+### Custom Object
+```
+Email_Log__c
+```
+
+### Apex Classes
+```
+ApplicationEmailQueueable
+```
+
+### Trigger Architecture
+```
+JobApplicationTrigger
+JobApplicationTriggerHandler
+```
+
+---
+
+## What I Learned
+
+- Creating custom logging objects
+- Recording system actions in Salesforce
+- Extending Queueable Apex functionality
+- Designing audit-friendly automation
+
+---

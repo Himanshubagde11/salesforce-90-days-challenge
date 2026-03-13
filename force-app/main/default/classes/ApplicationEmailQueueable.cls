@@ -72,7 +72,7 @@ public class ApplicationEmailQueueable implements Queueable {
 
             Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
 
-            email.setTargetObjectId(app.OwnerId);   
+            email.setTargetObjectId(app.OwnerId);
             email.setTemplateId(templateId);
             email.setSaveAsActivity(false);
 
@@ -81,9 +81,32 @@ public class ApplicationEmailQueueable implements Queueable {
             Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
 
             System.debug('EMAIL SENT SUCCESSFULLY');
+
+
+            Email_Log__c log = new Email_Log__c();
+
+            log.Job_Application__c = applicationId;
+
+            if(status == 'Interviewing'){
+                log.Email_Type__c = 'Interview Invitation';
+            }
+            else if(status == 'Offered'){
+                log.Email_Type__c = 'Job Offer';
+            }
+            else if(status == 'Rejected'){
+                log.Email_Type__c = 'Application Rejection';
+            }
+
+            log.Sent_Date__c = System.now();
+
+            insert log;
+
+            System.debug('EMAIL LOG CREATED');
+
         }
         else{
             System.debug('Template not found!');
         }
+
     }
 }
