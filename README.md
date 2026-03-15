@@ -5027,3 +5027,144 @@ Update Checkbox Field
 ✔ Improves system reliability  
 
 ---
+## Day 71 Scheduled Apex + Batch Apex Automation
+
+### Overview
+On Day 71, I implemented **Scheduled Apex and Batch Apex** to automate job application processing.  
+This feature ensures that job applications are automatically reviewed and updated without manual intervention.
+
+### Objective
+Build an automated system that:
+- Runs every day using **Scheduled Apex**
+- Processes job applications in bulk using **Batch Apex**
+- Updates records based on defined business logic
+
+### Architecture
+
+Scheduled Apex  
+↓  
+JobApplicationScheduler  
+↓  
+Batch Apex  
+↓  
+JobApplicationBatch  
+↓  
+Process Job_Application__c Records  
+
+### Scheduler Class
+
+The scheduler automatically runs the batch job at a scheduled time.
+
+```apex
+global class JobApplicationScheduler implements Schedulable {
+
+    global void execute(SchedulableContext sc) {
+
+        System.debug('Scheduler started');
+
+        Database.executeBatch(new JobApplicationBatch(), 200);
+
+    }
+}
+```
+
+### Batch Apex Class
+
+The batch class processes Job Application records in bulk.
+
+```apex
+global class JobApplicationBatch implements Database.Batchable<sObject> {
+
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+
+        return Database.getQueryLocator([
+            SELECT Id, Status__c, Applied_Date__c, Interview_Date__c, Is_Active__c
+            FROM Job_Application__c
+            WHERE Is_Active__c = true
+        ]);
+
+    }
+
+    global void execute(Database.BatchableContext bc, List<Job_Application__c> scope) {
+
+        List<Job_Application__c> updates = new List<Job_Application__c>();
+
+        for(Job_Application__c app : scope){
+
+            if(app.Status__c == 'Applied' && app.Applied_Date__c != null){
+
+                if(app.Applied_Date__c.addDays(30) < Date.today()){
+                    app.Status__c = 'Rejected';
+                    app.Is_Active__c = false;
+                    updates.add(app);
+                }
+
+            }
+
+            if(app.Status__c == 'Interviewing' && app.Interview_Date__c != null){
+
+                if(app.Interview_Date__c.addDays(7) < Date.today()){
+                    app.Is_Active__c = false;
+                    updates.add(app);
+                }
+
+            }
+
+        }
+
+        if(!updates.isEmpty()){
+            update updates;
+        }
+
+    }
+
+    global void finish(Database.BatchableContext bc){
+
+        System.debug('Batch Job Finished');
+
+    }
+}
+```
+
+### Scheduling the Job
+
+The job was scheduled using Execute Anonymous:
+
+```apex
+System.schedule(
+'Daily Job Application Check',
+'0 0 1 * * ?',
+new JobApplicationScheduler()
+);
+```
+
+### Cron Expression
+
+```
+0 0 1 * * ?
+```
+
+Meaning:
+
+Runs **every day at 1:00 AM**
+
+### Testing the Batch Job
+
+To test manually:
+
+```apex
+Database.executeBatch(new JobApplicationBatch(), 200);
+```
+
+### Salesforce Concepts Used
+
+- Scheduled Apex
+- Batch Apex
+- Asynchronous Processing
+- Bulk Record Processing
+- Governor Limits Handling
+
+### Outcome
+
+The system now automatically processes job applications daily and updates their status based on defined business rules.  
+This implementation demonstrates scalable backend automation using Salesforce Apex.
