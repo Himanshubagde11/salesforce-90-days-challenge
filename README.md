@@ -4633,3 +4633,85 @@ Steps to test the feature:
 - How to debug using Apex Jobs and Debug Logs
 
 ---
+
+# Day 70 – Prevent Duplicate Emails in Salesforce
+
+## Objective
+Today I enhanced the email automation system in the Job Application Tracker by preventing duplicate emails from being sent when a record is updated multiple times with the same status.
+
+Previously, if a user updated a Job Application record multiple times with the same status (Interviewing, Offered, or Rejected), the system could send the same email repeatedly. This behavior is not ideal in real-world systems.
+
+To solve this, I implemented **email tracking flags** using checkbox fields and updated the Queueable Apex logic.
+
+---
+
+## New Fields Added
+
+Three checkbox fields were added to the **Job_Application__c** object:
+
+- `Interview_Email_Sent__c`
+- `Offer_Email_Sent__c`
+- `Rejection_Email_Sent__c`
+
+These fields track whether a particular email has already been sent for a record.
+
+Example:
+
+| Status | Interview_Email_Sent__c | Email Sent |
+|------|------|------|
+| Interviewing | false | Yes |
+| Interviewing again | true | No |
+
+---
+
+## Updated Queueable Logic
+
+The `ApplicationEmailQueueable` class was updated to:
+
+1. Check whether the email has already been sent.
+2. Send the appropriate email template.
+3. Update the corresponding checkbox field to **true**.
+
+Example logic:
+
+```
+if(status == 'Interviewing' && !app.Interview_Email_Sent__c)
+```
+
+This ensures the email is sent **only once**.
+
+---
+
+## Email Flow
+
+```
+Status Change
+      ↓
+Trigger Fires
+      ↓
+Queueable Apex Job
+      ↓
+Check Email Sent Flag
+      ↓
+Send Email Template
+      ↓
+Update Checkbox Field
+```
+
+---
+
+## Files Updated
+
+- `ApplicationEmailQueueable.cls`
+- `JobApplicationTriggerHandler.cls`
+- `Job_Application__c` object (added checkbox fields)
+
+---
+
+## Result
+
+✔ Emails are now sent **only once per status**  
+✔ Prevents duplicate notifications  
+✔ Improves system reliability  
+
+---

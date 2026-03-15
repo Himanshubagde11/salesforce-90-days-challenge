@@ -15,33 +15,77 @@ public class ApplicationEmailQueueable implements Queueable {
         System.debug('Status: ' + status);
 
         Job_Application__c app = [
-            SELECT Id, Name, Status__c, Owner.Email
+            SELECT Id, Name, OwnerId,
+                   Interview_Email_Sent__c,
+                   Offer_Email_Sent__c,
+                   Rejection_Email_Sent__c
             FROM Job_Application__c
             WHERE Id = :applicationId
             LIMIT 1
         ];
 
-        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        Id templateId;
 
-        email.setToAddresses(new String[] { app.Owner.Email });
+        if(status == 'Interviewing' && !app.Interview_Email_Sent__c){
 
-        if(status == 'Interviewing'){
-            email.setSubject('Interview Invitation');
-            email.setPlainTextBody('Your application has moved to the Interview stage.');
+            System.debug('Using Interview Template');
+
+            templateId = [
+                SELECT Id
+                FROM EmailTemplate
+                WHERE DeveloperName = 'Interview_Invitation'
+                LIMIT 1
+            ].Id;
+
+            app.Interview_Email_Sent__c = true;
         }
-        else if(status == 'Offered'){
-            email.setSubject('Job Offer');
-            email.setPlainTextBody('Congratulations! You have received a job offer.');
+
+        else if(status == 'Offered' && !app.Offer_Email_Sent__c){
+
+            System.debug('Using Offer Template');
+
+            templateId = [
+                SELECT Id
+                FROM EmailTemplate
+                WHERE DeveloperName = 'Job_Offer_Email'
+                LIMIT 1
+            ].Id;
+
+            app.Offer_Email_Sent__c = true;
         }
-        else if(status == 'Rejected'){
-            email.setSubject('Application Update');
-            email.setPlainTextBody('Thank you for applying. Unfortunately you were not selected.');
+
+        else if(status == 'Rejected' && !app.Rejection_Email_Sent__c){
+
+            System.debug('Using Rejection Template');
+
+            templateId = [
+                SELECT Id
+                FROM EmailTemplate
+                WHERE DeveloperName = 'Application_Rejection_Email'
+                LIMIT 1
+            ].Id;
+
+            app.Rejection_Email_Sent__c = true;
         }
 
-        System.debug('Sending Email...');
+        if(templateId != null){
 
-        Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
 
-        System.debug('EMAIL SENT SUCCESSFULLY');
+            email.setTargetObjectId(app.OwnerId);
+            email.setTemplateId(templateId);
+            email.setSaveAsActivity(false);
+
+            System.debug('Sending Email...');
+
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
+
+            System.debug('EMAIL SENT SUCCESSFULLY');
+
+            update app;
+        }
+        else{
+            System.debug('Email already sent OR template not found');
+        }
     }
 }
