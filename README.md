@@ -4633,8 +4633,320 @@ Steps to test the feature:
 - How to debug using Apex Jobs and Debug Logs
 
 ---
+# Day 67 – Queueable Apex Email Notification System
 
-# Day 70 – Prevent Duplicate Emails in Salesforce
+## Overview
+Today I implemented an **asynchronous email notification system** using **Queueable Apex** in Salesforce.  
+The goal is to automatically send an email when the **Status of a Job Application changes**.
+
+This improves performance because the email is processed **asynchronously**, instead of slowing down the main transaction.
+
+---
+
+## Architecture
+
+LWC  
+↓  
+Apex Controller  
+↓  
+Service Layer  
+↓  
+Trigger  
+↓  
+Trigger Handler  
+↓  
+Queueable Apex  
+↓  
+Email Sent
+
+---
+
+## Features Implemented
+
+- Trigger fires when **Job Application Status changes**
+- Trigger Handler manages business logic
+- **Queueable Apex** processes email sending asynchronously
+- Email is sent based on the **Status value**
+- Debug logs added to monitor execution
+- System designed following **Salesforce best practices**
+
+---
+
+## Status-Based Email Logic
+
+| Status | Email Sent |
+|------|------|
+| Interviewing | Interview Invitation Email |
+| Offered | Job Offer Email |
+| Rejected | Application Rejection Email |
+
+---
+
+## Queueable Apex Implementation
+
+Queueable Apex allows running processes in the background without affecting user performance.
+
+### Benefits
+- Asynchronous processing
+- Handles heavy operations
+- Improves scalability
+- Prevents UI delays
+
+---
+
+## Email Process Flow
+
+1. User updates Job Application status
+2. Trigger detects the status change
+3. Trigger Handler processes the logic
+4. Queueable Apex job is added to the queue
+5. Queueable executes in the background
+6. Email notification is sent to the record owner
+
+---
+
+## Debug Logging
+
+Debug statements were added to monitor the process.
+
+Example Logs:
+
+QUEUEABLE STARTED  
+Application Found  
+Using Interview Template  
+Sending Email...  
+EMAIL SENT SUCCESSFULLY
+
+---
+
+## Apex Class Used
+
+ApplicationEmailQueueable.cls
+
+Responsibilities:
+- Fetch Job Application record
+- Check application status
+- Prepare email message
+- Send email asynchronously
+
+---
+
+## Key Learning
+
+- Understanding **Queueable Apex**
+- Sending emails using **Messaging.SingleEmailMessage**
+- Debugging **asynchronous Apex jobs**
+- Implementing **Salesforce trigger framework architecture**
+
+---
+# Day 68 – Email Automation using Queueable Apex
+
+## Overview
+On Day 68 of the Salesforce 90 Days Challenge, I implemented **Email Automation using Queueable Apex and Email Templates** in the Job Application Tracker project.
+
+Now, whenever the status of a Job Application changes (Interviewing, Offered, Rejected), the system automatically sends an email notification using a predefined Email Template.
+
+This email is processed asynchronously using **Queueable Apex**, improving performance and following Salesforce best practices.
+
+---
+
+## Features Implemented
+
+### 1. Email Templates
+Created reusable Salesforce Email Templates for different job application outcomes.
+
+Templates created:
+
+- Interview Invitation
+- Job Offer Notification
+- Application Rejection
+
+These templates allow consistent communication with users.
+
+---
+
+### 2. Queueable Apex for Email Processing
+A Queueable Apex class was implemented to handle email sending asynchronously.
+
+Benefits:
+- Non-blocking processing
+- Better performance
+- Follows Salesforce governor limits
+
+Class used:
+`ApplicationEmailQueueable.cls`
+
+---
+
+### 3. Trigger Based Automation
+When the Job Application status changes, the system automatically processes the email flow.
+
+### Flow
+
+```
+Status Change
+     ↓
+Trigger (JobApplicationTrigger)
+     ↓
+Trigger Handler
+     ↓
+Queueable Apex (ApplicationEmailQueueable)
+     ↓
+Email Template Selected
+     ↓
+Email Sent Automatically
+```
+
+---
+
+## Components Used
+
+### Custom Object
+`Job_Application__c`
+
+### Important Fields
+- Status__c
+- Interview_Date__c
+- Expected_salary__c
+- OwnerId
+
+---
+
+## Apex Components
+
+Trigger  
+`JobApplicationTrigger`
+
+Trigger Handler  
+`JobApplicationTriggerHandler`
+
+Queueable Apex  
+`ApplicationEmailQueueable`
+
+---
+
+## What I Learned
+
+- How to implement **Queueable Apex**
+- How to integrate **Email Templates with Apex**
+- How to build a **Trigger Handler architecture**
+- How to automate business processes in Salesforce
+
+---
+# Day 69 – Email Logging System
+
+## Overview
+On Day 69 of the Salesforce 90 Days Challenge, I enhanced the Job Application Tracker by implementing an **Email Logging System**.
+
+Now whenever an email is sent automatically (Interview Invitation, Job Offer, or Rejection), the system also creates a log record. This helps track all email communications related to a job application.
+
+---
+
+## Feature Implemented
+
+### Email Log Object
+A new custom object was created to store email history.
+
+**Object Name**
+```
+Email_Log__c
+```
+
+This object records every email sent by the system.
+
+---
+
+## Fields Created
+
+### Job Application
+```
+Lookup → Job_Application__c
+```
+
+Stores the related job application.
+
+### Email Type
+```
+Picklist
+```
+
+Values:
+```
+Interview Invitation
+Job Offer
+Application Rejection
+```
+
+### Sent Date
+```
+Date/Time
+```
+
+Stores the timestamp when the email was sent.
+
+---
+
+## Updated Queueable Apex
+
+The `ApplicationEmailQueueable` class was updated to create a log record after sending the email.
+
+Flow:
+
+```
+Status Change
+      ↓
+Trigger
+      ↓
+Trigger Handler
+      ↓
+Queueable Apex
+      ↓
+Email Sent
+      ↓
+Email Log Record Created
+```
+
+---
+
+## Benefits
+
+- Tracks all automated email communications
+- Improves system transparency
+- Helps with auditing and debugging
+- Makes the project more production-like
+
+---
+
+## Components Used
+
+### Custom Object
+```
+Email_Log__c
+```
+
+### Apex Classes
+```
+ApplicationEmailQueueable
+```
+
+### Trigger Architecture
+```
+JobApplicationTrigger
+JobApplicationTriggerHandler
+```
+
+---
+
+## What I Learned
+
+- Creating custom logging objects
+- Recording system actions in Salesforce
+- Extending Queueable Apex functionality
+- Designing audit-friendly automation
+
+---
+
+# Day 70 Prevent Duplicate Emails in Salesforce
 
 ## Objective
 Today I enhanced the email automation system in the Job Application Tracker by preventing duplicate emails from being sent when a record is updated multiple times with the same status.
