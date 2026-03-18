@@ -5168,3 +5168,123 @@ Database.executeBatch(new JobApplicationBatch(), 200);
 
 The system now automatically processes job applications daily and updates their status based on defined business rules.  
 This implementation demonstrates scalable backend automation using Salesforce Apex.
+---
+
+# Day 72 - Batch Apex with External API Callouts
+
+## Overview
+On Day 72, I implemented a Batch Apex class that performs HTTP callouts to an external API. This demonstrates how Salesforce can integrate with external systems asynchronously while processing large datasets efficiently.
+
+---
+
+## Objectives
+- Understand Batch Apex with callouts
+- Perform HTTP POST requests from Apex
+- Process records in chunks using batch execution
+- Handle JSON request and response
+- Debug and validate API integration
+
+---
+
+## Key Concepts Covered
+- Database.Batchable interface
+- Database.AllowsCallouts
+- HTTP Request and Response handling
+- JSON serialization
+- Asynchronous processing in Salesforce
+
+---
+
+## Implementation Details
+
+### Batch Class: JobApplicationCalloutBatch
+
+- Retrieves active Job Application records
+- Sends each record’s data to an external API
+- Processes records in batches
+- Handles exceptions during callouts
+
+```apex
+global class JobApplicationCalloutBatch 
+implements Database.Batchable<sObject>, Database.AllowsCallouts {
+
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Name, Status__c
+            FROM Job_Application__c
+            WHERE Is_Active__c = true
+        ]);
+    }
+
+    global void execute(Database.BatchableContext bc, List<sObject> scope) {
+
+        Http http = new Http();
+
+        for(sObject obj : scope){
+
+            Job_Application__c app = (Job_Application__c) obj;
+
+            try{
+                HttpRequest req = new HttpRequest();
+                req.setEndpoint('https://jsonplaceholder.typicode.com/posts');
+                req.setMethod('POST');
+                req.setHeader('Content-Type', 'application/json');
+
+                String body = JSON.serialize(new Map<String, Object>{
+                    'name' => app.Name,
+                    'status' => app.Status__c
+                });
+
+                req.setBody(body);
+
+                HttpResponse res = http.send(req);
+
+                System.debug('Response: ' + res.getBody());
+
+            } catch(Exception e){
+                System.debug('Callout failed: ' + e.getMessage());
+            }
+        }
+    }
+
+    global void finish(Database.BatchableContext bc){
+        System.debug('Callout Batch Finished');
+    }
+}
+```
+
+### How to Run
+Execute the batch using Anonymous Apex:
+```apex
+Database.executeBatch(new JobApplicationCalloutBatch(), 5);
+```
+### Sample Output
+```apex
+StatusCode: 201
+Response:
+{
+  "status": "Applied",
+  "name": "Candidate Name",
+  "id": 101
+}
+```
+### Challenges Faced
+- Unauthorized endpoint error due to missing Remote Site Settings
+- Understanding difference between QueryLocator and Iterable
+- Debugging batch execution logs
+- Handling callouts inside batch context
+
+### Key Learnings
+- Remote Site Settings are mandatory for external callouts
+- Batch Apex enables scalable processing of large datasets
+- Callouts must be handled carefully within governor limits
+- Debug logs are essential for troubleshooting asynchronous jobs
+- Current Limitations
+- API responses are only logged, not stored
+- No retry mechanism for failed callouts
+- No status tracking for processed records
+
+
+### Conclusion
+This task provided hands-on experience with integrating Salesforce and external systems using Batch Apex. It strengthened understanding of asynchronous processing and real-world API interaction patterns.
+---
