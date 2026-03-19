@@ -2,9 +2,6 @@ global class JobApplicationCalloutBatch
 implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
     global Database.QueryLocator start(Database.BatchableContext bc) {
-
-        System.debug('START METHOD CALLED');
-
         return Database.getQueryLocator([
             SELECT Id, Name, Status__c
             FROM Job_Application__c
@@ -14,9 +11,8 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
     global void execute(Database.BatchableContext bc, List<sObject> scope) {
 
-        System.debug('EXECUTE RUNNING, size: ' + scope.size());
-
         Http http = new Http();
+        List<Job_Application__c> updates = new List<Job_Application__c>();
 
         for(sObject obj : scope){
 
@@ -24,7 +20,6 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
             try{
                 HttpRequest req = new HttpRequest();
-
                 req.setEndpoint('https://jsonplaceholder.typicode.com/posts');
                 req.setMethod('POST');
                 req.setHeader('Content-Type', 'application/json');
@@ -38,11 +33,19 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
                 HttpResponse res = http.send(req);
 
-                System.debug('Response: ' + res.getBody());
+                app.API_Response__c = res.getBody();
+                app.Callout_Status__c = 'Success';
 
             } catch(Exception e){
-                System.debug('Callout failed: ' + e.getMessage());
+                app.Callout_Status__c = 'Failed';
+                app.API_Response__c = e.getMessage();
             }
+
+            updates.add(app);
+        }
+
+        if(!updates.isEmpty()){
+            update updates;
         }
     }
 

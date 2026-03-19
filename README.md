@@ -5288,3 +5288,128 @@ Response:
 ### Conclusion
 This task provided hands-on experience with integrating Salesforce and external systems using Batch Apex. It strengthened understanding of asynchronous processing and real-world API interaction patterns.
 ---
+
+# Day 73 Batch Apex with Callout Response Handling
+
+## Overview
+On Day 73, I enhanced the Batch Apex implementation by integrating HTTP callouts with proper response handling and database updates. This ensures that each Job Application record stores API responses and tracks callout success or failure.
+
+---
+
+## Objectives
+- Perform HTTP callouts from Batch Apex
+- Handle API responses properly
+- Store response data in Salesforce records
+- Track success and failure of callouts
+- Follow bulk processing best practices
+
+---
+
+## Key Features
+
+### 1. Batch Apex with Callouts
+- Implemented `Database.Batchable` and `Database.AllowsCallouts`
+- Processed records in batches to stay within governor limits
+
+### 2. HTTP POST Callout
+- Sent request to external API (`jsonplaceholder`)
+- Serialized record data into JSON format
+
+### 3. Response Handling
+- Captured API response using `HttpResponse`
+- Stored response body in `API_Response__c`
+
+### 4. Status Tracking
+- Updated `Callout_Status__c` field:
+  - `Success` when callout succeeds
+  - `Failed` when exception occurs
+
+### 5. Bulk Update Optimization
+- Collected records in a list
+- Performed a single `update` DML operation per batch
+
+---
+
+## Apex Implementation
+
+```apex
+global class JobApplicationCalloutBatch 
+implements Database.Batchable<sObject>, Database.AllowsCallouts {
+
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Name, Status__c
+            FROM Job_Application__c
+            WHERE Is_Active__c = true
+        ]);
+    }
+
+    global void execute(Database.BatchableContext bc, List<sObject> scope) {
+
+        Http http = new Http();
+        List<Job_Application__c> updates = new List<Job_Application__c>();
+
+        for(sObject obj : scope){
+
+            Job_Application__c app = (Job_Application__c) obj;
+
+            try{
+                HttpRequest req = new HttpRequest();
+                req.setEndpoint('https://jsonplaceholder.typicode.com/posts');
+                req.setMethod('POST');
+                req.setHeader('Content-Type', 'application/json');
+
+                String body = JSON.serialize(new Map<String, Object>{
+                    'name' => app.Name,
+                    'status' => app.Status__c
+                });
+
+                req.setBody(body);
+
+                HttpResponse res = http.send(req);
+
+                app.API_Response__c = res.getBody();
+                app.Callout_Status__c = 'Success';
+
+            } catch(Exception e){
+                app.Callout_Status__c = 'Failed';
+                app.API_Response__c = e.getMessage();
+            }
+
+            updates.add(app);
+        }
+
+        if(!updates.isEmpty()){
+            update updates;
+        }
+    }
+
+    global void finish(Database.BatchableContext bc){
+        System.debug('Callout Batch Finished');
+    }
+}
+```
+
+---
+
+## How to Execute
+
+Run the batch using Execute Anonymous:
+
+```apex
+Database.executeBatch(new JobApplicationCalloutBatch(), 5);
+```
+
+---
+
+## Key Learnings
+- How to integrate external APIs using Apex callouts
+- Importance of handling exceptions in batch jobs
+- Bulkification to avoid governor limits
+- Storing API responses for audit and debugging
+- Understanding batch lifecycle: `start`, `execute`, `finish`
+
+---
+
+## Conclusion
+This implementation demonstrates a scalable and robust way to integrate external APIs with Salesforce using Batch Apex, while ensuring proper tracking, error handling, and performance optimization.
