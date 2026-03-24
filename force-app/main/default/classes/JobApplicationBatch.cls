@@ -1,14 +1,15 @@
 global class JobApplicationBatch implements Database.Batchable<sObject> {
 
     global Database.QueryLocator start(Database.BatchableContext bc) {
-
-        return Database.getQueryLocator([
-            SELECT Id, Status__c, Applied_Date__c, Interview_Date__c, Is_Active__c
-            FROM Job_Application__c
-            WHERE Is_Active__c = true
-        ]);
-
-    }
+    return Database.getQueryLocator([
+        SELECT Id, Name, Status__c
+        FROM Job_Application__c
+        WHERE Is_Active__c = true
+        AND (Callout_Status__c = null 
+             OR Callout_Status__c = 'Failed')
+        AND (Retry_Count__c = null OR Retry_Count__c < 3)
+    ]);
+}
 
     global void execute(Database.BatchableContext bc, List<Job_Application__c> scope) {
 

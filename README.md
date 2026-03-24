@@ -5413,3 +5413,121 @@ Database.executeBatch(new JobApplicationCalloutBatch(), 5);
 
 ## Conclusion
 This implementation demonstrates a scalable and robust way to integrate external APIs with Salesforce using Batch Apex, while ensuring proper tracking, error handling, and performance optimization.
+---
+
+# Day 74 - Batch Apex Retry Mechanism and Failure Handling
+
+## Overview
+On Day 74, I enhanced my Batch Apex implementation by adding a retry mechanism and proper failure handling for HTTP callouts. This ensures that failed API requests are retried a limited number of times, making the system more reliable and production-ready.
+
+---
+
+## Problem Statement
+In real-world integrations, external APIs can fail due to network issues, server downtime, or unexpected errors. Without a retry mechanism, failed requests result in data inconsistency and loss of important operations.
+
+---
+
+## Solution
+Implemented a retry mechanism within Batch Apex to:
+- Track success and failure of API callouts
+- Retry failed records up to a defined limit
+- Prevent infinite retry loops
+- Store API responses for debugging and traceability
+
+---
+
+## Key Features Implemented
+
+### 1. Retry Mechanism
+- Each failed record increments a retry counter
+- Records are retried in subsequent batch executions
+- Processing stops after reaching the retry limit (3 attempts)
+
+### 2. Failure Handling
+- Used try-catch block to handle exceptions
+- Captured API errors and stored them in a field
+- Marked records as "Failed" when exceptions occur
+
+### 3. Success Handling
+- Validated HTTP response status codes (200, 201)
+- Stored API response in Salesforce
+- Reset retry count on success
+
+### 4. Controlled Processing via SOQL
+Only selected records that:
+- Are active
+- Have not been processed successfully
+- Have retry count less than 3
+
+---
+
+## SOQL Query (start method)
+
+```apex
+SELECT Id, Name, Status__c, Callout_Status__c, Retry_Count__c
+FROM Job_Application__c
+WHERE Is_Active__c = true
+AND (Callout_Status__c = null OR Callout_Status__c = 'Failed')
+AND (Retry_Count__c = null OR Retry_Count__c < 3)
+```
+## Execute Method Logic
+```apex
+try {
+    HttpResponse res = http.send(req);
+
+    if(res.getStatusCode() == 200 || res.getStatusCode() == 201){
+        app.Callout_Status__c = 'Success';
+        app.API_Response__c = res.getBody();
+        app.Retry_Count__c = 0;
+    } else {
+        throw new CalloutException('API failed with status: ' + res.getStatusCode());
+    }
+
+} catch(Exception e){
+    app.Callout_Status__c = 'Failed';
+    app.API_Response__c = e.getMessage();
+
+    if(app.Retry_Count__c == null){
+        app.Retry_Count__c = 1;
+    } else {
+        app.Retry_Count__c += 1;
+    }
+}
+```
+
+## Execution Flow
+```apex
+Run 1 -> Failed -> Retry Count = 1  
+Run 2 -> Failed -> Retry Count = 2  
+Run 3 -> Failed -> Retry Count = 3  
+Run 4 -> Record Skipped
+```
+## Testing Strategy
+#### Success Scenario
+- Used a valid API endpoint
+- Verified:
+ - Callout_Status__c = Success
+ - Retry_Count__c = 0
+ - API_Response__c populated
+
+#### Failure Scenario
+- Used an invalid API endpoint
+- Verified:
+ - Callout_Status__c = Failed
+ - Retry_Count__c increments on each run
+ - Stops processing after 3 attempts
+
+#### Key Learnings
+- Importance of handling API failures in integrations
+- How to implement retry logic in Batch Apex
+- Preventing infinite processing using controlled queries
+- Enhancing system reliability with proper error tracking
+
+## Outcome
+Built a fault-tolerant integration system using Batch Apex that can:
+- Handle API failures gracefully
+- Retry failed operations
+- Maintain data consistency
+- Avoid unnecessary processing
+
+---

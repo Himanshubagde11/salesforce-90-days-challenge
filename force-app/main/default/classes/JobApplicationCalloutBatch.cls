@@ -2,10 +2,19 @@ global class JobApplicationCalloutBatch
 implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
     global Database.QueryLocator start(Database.BatchableContext bc) {
+
         return Database.getQueryLocator([
-            SELECT Id, Name, Status__c
+            SELECT Id, Name, Status__c, Callout_Status__c, Retry_Count__c
             FROM Job_Application__c
             WHERE Is_Active__c = true
+            AND (
+                Callout_Status__c = null 
+                OR Callout_Status__c = 'Failed'
+            )
+            AND (
+                Retry_Count__c = null 
+                OR Retry_Count__c < 3
+            )
         ]);
     }
 
@@ -33,12 +42,29 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
                 HttpResponse res = http.send(req);
 
-                app.API_Response__c = res.getBody();
-                app.Callout_Status__c = 'Success';
+                if(res.getStatusCode() == 200 || res.getStatusCode() == 201){
+
+                    app.Callout_Status__c = 'Success';
+                    app.API_Response__c = res.getBody();
+                    app.Retry_Count__c = 0;
+
+                } else {
+
+                    throw new CalloutException(
+                        'API failed with status: ' + res.getStatusCode()
+                    );
+                }
 
             } catch(Exception e){
+
                 app.Callout_Status__c = 'Failed';
                 app.API_Response__c = e.getMessage();
+
+                if(app.Retry_Count__c == null){
+                    app.Retry_Count__c = 1;
+                } else {
+                    app.Retry_Count__c += 1;
+                }
             }
 
             updates.add(app);
