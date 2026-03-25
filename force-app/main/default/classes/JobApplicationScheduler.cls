@@ -2,9 +2,8 @@ global class JobApplicationScheduler implements Schedulable {
 
     global void execute(SchedulableContext sc) {
 
-        System.debug('Scheduler started');
+        JobApplicationCalloutBatch batch = new JobApplicationCalloutBatch();
 
-        Database.executeBatch(new JobApplicationBatch(), 200);
-
+        Database.executeBatch(batch, 5);
     }
 }

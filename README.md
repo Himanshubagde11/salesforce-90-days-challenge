@@ -5531,3 +5531,114 @@ Built a fault-tolerant integration system using Batch Apex that can:
 - Avoid unnecessary processing
 
 ---
+
+# Day 75 - Scheduled Batch Apex (Automation)
+
+## Overview
+On Day 75, I automated my Batch Apex process using Scheduled Apex. Instead of manually running batch jobs, the system now executes automatically at a defined time, making the entire workflow self-sustaining and closer to a real production system.
+
+---
+
+## Problem Statement
+Previously, the batch job had to be triggered manually. This approach is not scalable or reliable in real-world systems where continuous and automated processing is required.
+
+---
+
+## Solution
+Implemented a scheduler using Apex that automatically triggers the Batch Apex job at a specified time using cron expressions.
+
+---
+
+## Key Features Implemented
+
+### 1. Scheduled Apex
+- Created a class implementing the Schedulable interface
+- Enabled automatic execution of batch jobs
+
+### 2. Batch Integration
+- Integrated existing Batch Apex (JobApplicationCalloutBatch) with the scheduler
+- Ensured seamless execution of callouts and retry logic
+
+### 3. Automation
+- Eliminated the need for manual execution
+- System now processes records on a defined schedule
+
+---
+
+## Scheduler Class
+
+global class JobApplicationScheduler implements Schedulable {
+
+    global void execute(SchedulableContext sc) {
+
+        JobApplicationCalloutBatch batch = new JobApplicationCalloutBatch();
+
+        Database.executeBatch(batch, 5);
+    }
+}
+
+---
+
+## Scheduling Methods
+
+### Using Salesforce UI
+- Navigate to Setup → Apex Classes → Schedule Apex
+- Select JobApplicationScheduler
+- Set frequency (Daily / Weekly)
+- Define execution time
+
+---
+
+### Using Apex (Programmatic Scheduling)
+
+String cronExp = '0 0 12 * * ?'; // Runs daily at 12 PM
+System.schedule('Job Application Batch Scheduler', cronExp, new JobApplicationScheduler());
+
+---
+
+## Cron Expression Breakdown
+
+Seconds Minutes Hours Day-of-Month Month Day-of-Week
+
+Example:
+0 0 12 * * ?
+Runs every day at 12:00 PM
+
+---
+
+## Execution Flow
+
+Scheduler → Batch Apex → HTTP Callout → Retry Logic → Update Records
+
+---
+
+## Testing and Verification
+
+### 1. Schedule the Job
+- Confirm job is listed under Scheduled Jobs
+
+### 2. Monitor Execution
+- Check Apex Jobs for batch execution status
+
+### 3. Validate Data
+- Ensure records are updated automatically without manual intervention
+- Verify retry logic still works under scheduled execution
+
+---
+
+## Key Learnings
+- How to automate batch processes using Scheduled Apex
+- Understanding cron expressions for scheduling jobs
+- Integrating asynchronous processes (Scheduler + Batch)
+- Moving from manual execution to system-driven automation
+
+---
+
+## Outcome
+Built a fully automated data processing system that:
+- Runs without manual intervention
+- Handles API integrations
+- Retries failed operations
+- Maintains system reliability
+
+---
