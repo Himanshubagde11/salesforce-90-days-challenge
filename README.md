@@ -5642,3 +5642,145 @@ Built a fully automated data processing system that:
 - Maintains system reliability
 
 ---
+
+# Day 76 - Logging Framework for Batch Apex
+
+## Overview
+On Day 76, I implemented a centralized logging framework to track API callouts and system behavior in a structured way. Instead of storing only the latest API response, the system now maintains a full history of every execution attempt.
+
+---
+
+## Problem Statement
+Previously:
+- API responses were stored in a single field (API_Response__c)
+- Old data was overwritten
+- No visibility into retries or failures
+- Debugging was difficult
+
+---
+
+## Solution
+Built a logging framework using:
+- Custom object (Application_Log__c)
+- Reusable Apex logger class
+- Integration with Batch Apex
+
+---
+
+## Custom Object: Application_Log__c
+
+Fields:
+
+- Message__c (Long Text Area)
+  Stores API response or error message
+
+- Status__c (Picklist: Success, Failed)
+  Indicates callout result
+
+- Job_Application__c (Lookup)
+  Links log to related record
+
+- Log_Time__c (Date/Time)
+  Stores execution timestamp
+
+---
+
+## Logger Class
+
+public class ApplicationLogger {
+
+    public static void log(String message, String status, Id recordId){
+
+        Application_Log__c log = new Application_Log__c();
+
+        log.Message__c = message;
+        log.Status__c = status;
+        log.Job_Application__c = recordId;
+        log.Log_Time__c = System.now();
+
+        insert log;
+    }
+}
+
+---
+
+## Batch Integration
+
+### Success Logging
+
+ApplicationLogger.log(
+    'Callout successful. Response: ' + res.getBody(),
+    'Success',
+    app.Id
+);
+
+---
+
+### Failure Logging
+
+ApplicationLogger.log(
+    'Callout failed. Error: ' + e.getMessage(),
+    'Failed',
+    app.Id
+);
+
+---
+
+## Execution Flow
+
+Batch → Callout → Success / Failed → Log Record Created
+
+---
+
+## Example Scenario
+
+Run 1 → Failed → Log 1  
+Run 2 → Failed → Log 2  
+Run 3 → Success → Log 3  
+
+Each attempt creates a separate log record.
+
+---
+
+## Testing
+
+### Success Case
+- Used valid API endpoint
+- Verified:
+  - Status__c = Success
+  - Log record created with response
+
+### Failure Case
+- Used invalid endpoint
+- Verified:
+  - Status__c = Failed
+  - Retry_Count__c increments
+  - Log record created with error
+
+### Retry Validation
+- Ran batch multiple times
+- Confirmed multiple logs per record
+
+---
+
+## Key Learnings
+- Logging is essential for debugging backend systems
+- Maintaining history is better than overwriting data
+- Centralized logging improves traceability
+- Real systems rely on logs, not just field values
+
+---
+
+## Outcome
+Built a logging system that:
+- Tracks every API callout
+- Maintains retry history
+- Improves debugging and monitoring
+- Makes system production-ready
+
+---
+
+## Limitation
+Current implementation uses DML inside loop (not bulk-safe)
+
+---

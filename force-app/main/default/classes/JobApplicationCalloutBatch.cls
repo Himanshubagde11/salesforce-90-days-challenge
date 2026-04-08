@@ -48,6 +48,13 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
                     app.API_Response__c = res.getBody();
                     app.Retry_Count__c = 0;
 
+                    ApplicationLogger.log(
+                        'Callout successful. StatusCode: ' + res.getStatusCode() + 
+                        ' Response: ' + res.getBody(),
+                        'Success',
+                        app.Id
+                    );
+
                 } else {
 
                     throw new CalloutException(
@@ -65,6 +72,12 @@ implements Database.Batchable<sObject>, Database.AllowsCallouts {
                 } else {
                     app.Retry_Count__c += 1;
                 }
+
+                ApplicationLogger.log(
+                    'Callout failed. Error: ' + e.getMessage(),
+                    'Failed',
+                    app.Id
+                );
             }
 
             updates.add(app);
